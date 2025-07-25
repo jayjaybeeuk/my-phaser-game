@@ -38,11 +38,11 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 function preload(this: Phaser.Scene) {
-    // Create colored rectangles for sprites since we don't have image assets
-    this.add.graphics()
-        .fillStyle(0x00ff00)
-        .fillRect(0, 0, 32, 32)
-        .generateTexture('player', 32, 32);
+    // Load the sprite sheet for the main character
+    this.load.spritesheet('player', 'assets/main-sprite.png', {
+        frameWidth: 30,
+        frameHeight: 50
+    });
     
     this.add.graphics()
         .fillStyle(0xff0000)
@@ -76,7 +76,29 @@ function create(this: Phaser.Scene) {
     player = this.physics.add.sprite(100, 450, 'player');
     player.setBounce(0);
     player.setCollideWorldBounds(true);
-    player.setTint(0x00ff00);
+    
+    // Create player animations
+    this.anims.create({
+        key: 'idle',
+        frames: [{ key: 'player', frame: 0 }],
+        frameRate: 1
+    });
+    
+    this.anims.create({
+        key: 'walk',
+        frames: this.anims.generateFrameNumbers('player', { start: 1, end: 4 }),
+        frameRate: 8,
+        repeat: -1
+    });
+    
+    this.anims.create({
+        key: 'jump',
+        frames: [{ key: 'player', frame: 5 }],
+        frameRate: 1
+    });
+    
+    // Set default animation
+    player.anims.play('idle');
     
     // Player physics
     this.physics.add.collider(player, platforms);
@@ -251,18 +273,35 @@ function update(this: Phaser.Scene) {
         return;
     }
     
-    // Player movement
+    // Player movement with animations
     if (cursors.left.isDown) {
         player.setVelocityX(-200);
+        player.setFlipX(true); // Flip sprite to face left
+        if (player.body!.touching.down) {
+            player.anims.play('walk', true);
+        }
     } else if (cursors.right.isDown) {
         player.setVelocityX(200);
+        player.setFlipX(false); // Face right (normal)
+        if (player.body!.touching.down) {
+            player.anims.play('walk', true);
+        }
     } else {
         player.setVelocityX(0);
+        if (player.body!.touching.down) {
+            player.anims.play('idle', true);
+        }
     }
     
     // Jumping
     if (cursors.up.isDown && player.body!.touching.down) {
         player.setVelocityY(-500);
+        player.anims.play('jump', true);
+    }
+    
+    // Play jump animation when in air
+    if (!player.body!.touching.down) {
+        player.anims.play('jump', true);
     }
     
     // Enemy AI - simple bouncing
