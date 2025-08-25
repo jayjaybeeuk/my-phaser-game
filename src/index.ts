@@ -44,15 +44,16 @@ function preload(this: Phaser.Scene) {
         frameHeight: 43
     });
     
+    // Load the animated coin sprite sheet
+    this.load.spritesheet('coin', 'assets/coin-sprite.png', {
+        frameWidth: 14,
+        frameHeight: 14
+    });
+    
     this.add.graphics()
         .fillStyle(0xff0000)
         .fillRect(0, 0, 32, 16)
         .generateTexture('platform', 32, 16);
-    
-    this.add.graphics()
-        .fillStyle(0xffff00)
-        .fillRect(0, 0, 16, 16)
-        .generateTexture('collectible', 16, 16);
     
     this.add.graphics()
         .fillStyle(0xff00ff)
@@ -99,6 +100,14 @@ function create(this: Phaser.Scene) {
     
     // Set default animation
     player.anims.play('idle');
+    
+    // Create coin animation
+    this.anims.create({
+        key: 'coin-spin',
+        frames: this.anims.generateFrameNumbers('coin', { start: 0, end: 4 }),
+        frameRate: 10,
+        repeat: -1
+    });
     
     // Player physics
     this.physics.add.collider(player, platforms);
@@ -230,8 +239,8 @@ function createCollectibles(this: Phaser.Scene) {
     totalCollectibles = collectiblePositions.length;
     
     collectiblePositions.forEach(pos => {
-        const item = collectibles.create(pos.x, pos.y, 'collectible');
-        item.setTint(0xffff00);
+        const item = collectibles.create(pos.x, pos.y, 'coin');
+        item.anims.play('coin-spin');
         item.setBounce(0.2);
     });
 }
