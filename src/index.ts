@@ -40,8 +40,8 @@ const config: Phaser.Types.Core.GameConfig = {
 function preload(this: Phaser.Scene) {
     // Load the sprite sheet for the main character
     this.load.spritesheet('player', 'assets/main-sprite.png', {
-        frameWidth: 30,
-        frameHeight: 50
+        frameWidth: 28,
+        frameHeight: 43
     });
     
     this.add.graphics()
@@ -86,14 +86,14 @@ function create(this: Phaser.Scene) {
     
     this.anims.create({
         key: 'walk',
-        frames: this.anims.generateFrameNumbers('player', { start: 1, end: 4 }),
+        frames: this.anims.generateFrameNumbers('player', { start: 1, end: 3 }),
         frameRate: 8,
         repeat: -1
     });
     
     this.anims.create({
         key: 'jump',
-        frames: [{ key: 'player', frame: 5 }],
+        frames: [{ key: 'player', frame: 4 }],
         frameRate: 1
     });
     
