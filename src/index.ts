@@ -50,6 +50,12 @@ function preload(this: Phaser.Scene) {
         frameHeight: 14
     });
     
+    // Load the enemy spritesheet
+    this.load.spritesheet('enemy-one', 'assets/enemy-one-sprite.png', {
+        frameWidth: 21,
+        frameHeight: 26
+    });
+    
     this.add.graphics()
         .fillStyle(0xff0000)
         .fillRect(0, 0, 32, 16)
@@ -106,6 +112,14 @@ function create(this: Phaser.Scene) {
         key: 'coin-spin',
         frames: this.anims.generateFrameNumbers('coin', { start: 0, end: 4 }),
         frameRate: 10,
+        repeat: -1
+    });
+    
+    // Create enemy walking animation
+    this.anims.create({
+        key: 'enemy-walk',
+        frames: this.anims.generateFrameNumbers('enemy-one', { start: 0, end: 5 }),
+        frameRate: 8,
         repeat: -1
     });
     
@@ -189,7 +203,7 @@ function createLevel() {
     }
     
     // Second level platforms
-    for (let x = 160; x < 440; x += 32) {
+    for (let x = 160; x < 400; x += 32) {
         platforms.create(x, 200, 'platform').setTint(0xff0000);
     }
     
@@ -250,11 +264,13 @@ function createCollectibles(this: Phaser.Scene) {
 
 function createEnemies(this: Phaser.Scene) {
     // Create moving enemies with different movement patterns
-    const enemy1 = enemies.create(300, 180, 'enemy');
-    enemy1.setTint(0xff00ff);
-    enemy1.setVelocityX(50);
+    // Bottom floor walking enemy using spritesheet
+    const enemy1 = enemies.create(300, 550, 'enemy-one');
+    enemy1.setVelocityX(80);
     enemy1.setBounce(1);
     enemy1.setCollideWorldBounds(true);
+    enemy1.anims.play('enemy-walk');
+    enemy1.setFlipX(false); // Not flipped when going right initially
     
     const enemy2 = enemies.create(500, 260, 'enemy');
     enemy2.setTint(0xff0080);
@@ -320,6 +336,11 @@ function update(this: Phaser.Scene) {
     enemies.children.entries.forEach((enemy: any) => {
         if (enemy.body.touching.left || enemy.body.touching.right) {
             enemy.setVelocityX(-enemy.body.velocity.x);
+        }
+        
+        // Set sprite direction for the animated enemy based on current velocity
+        if (enemy.texture.key === 'enemy-one') {
+            enemy.setFlipX(enemy.body.velocity.x < 0); // Flip when going left
         }
     });
     
