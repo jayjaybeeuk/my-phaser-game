@@ -181,12 +181,15 @@ function createLevel() {
     
     // Main platforms (recreating the Central Cavern layout)
     // Top platform
-    for (let x = 64; x < 736; x += 32) {
+    for (let x = 64; x < 320; x += 32) {
+        platforms.create(x, 120, 'platform').setTint(0xff0000);
+    }
+    for (let x = 360; x < 736; x += 32) {
         platforms.create(x, 120, 'platform').setTint(0xff0000);
     }
     
     // Second level platforms
-    for (let x = 160; x < 320; x += 32) {
+    for (let x = 160; x < 440; x += 32) {
         platforms.create(x, 200, 'platform').setTint(0xff0000);
     }
     
