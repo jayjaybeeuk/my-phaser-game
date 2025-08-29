@@ -50,9 +50,14 @@ function preload(this: Phaser.Scene) {
         frameHeight: 14
     });
     
-    // Load the enemy spritesheet
+    // Load the enemy spritesheets
     this.load.spritesheet('enemy-one', 'assets/enemy-one-sprite.png', {
         frameWidth: 21,
+        frameHeight: 26
+    });
+    
+    this.load.spritesheet('enemy-two', 'assets/enemy-two-sprite.png', {
+        frameWidth: 25,
         frameHeight: 26
     });
     
@@ -115,10 +120,17 @@ function create(this: Phaser.Scene) {
         repeat: -1
     });
     
-    // Create enemy walking animation
+    // Create enemy walking animations
     this.anims.create({
-        key: 'enemy-walk',
+        key: 'enemy-one-walk',
         frames: this.anims.generateFrameNumbers('enemy-one', { start: 0, end: 5 }),
+        frameRate: 8,
+        repeat: -1
+    });
+    
+    this.anims.create({
+        key: 'enemy-two-walk',
+        frames: this.anims.generateFrameNumbers('enemy-two', { start: 0, end: 5 }),
         frameRate: 8,
         repeat: -1
     });
@@ -264,19 +276,21 @@ function createCollectibles(this: Phaser.Scene) {
 
 function createEnemies(this: Phaser.Scene) {
     // Create moving enemies with different movement patterns
-    // Bottom floor walking enemy using spritesheet
+    // Bottom floor walking enemy using enemy-one spritesheet
     const enemy1 = enemies.create(300, 550, 'enemy-one');
     enemy1.setVelocityX(80);
     enemy1.setBounce(1);
     enemy1.setCollideWorldBounds(true);
-    enemy1.anims.play('enemy-walk');
+    enemy1.anims.play('enemy-one-walk');
     enemy1.setFlipX(false); // Not flipped when going right initially
     
-    const enemy2 = enemies.create(500, 260, 'enemy');
-    enemy2.setTint(0xff0080);
+    // Second animated enemy using enemy-two spritesheet
+    const enemy2 = enemies.create(500, 260, 'enemy-two');
     enemy2.setVelocityX(-75);
     enemy2.setBounce(1);
     enemy2.setCollideWorldBounds(true);
+    enemy2.anims.play('enemy-two-walk');
+    enemy2.setFlipX(true); // Flipped when going left initially
     
     const enemy3 = enemies.create(150, 340, 'enemy');
     enemy3.setTint(0x8000ff);
@@ -338,8 +352,8 @@ function update(this: Phaser.Scene) {
             enemy.setVelocityX(-enemy.body.velocity.x);
         }
         
-        // Set sprite direction for the animated enemy based on current velocity
-        if (enemy.texture.key === 'enemy-one') {
+        // Set sprite direction for animated enemies based on current velocity
+        if (enemy.texture.key === 'enemy-one' || enemy.texture.key === 'enemy-two') {
             enemy.setFlipX(enemy.body.velocity.x < 0); // Flip when going left
         }
     });
