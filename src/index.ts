@@ -437,6 +437,13 @@ function winLevel(this: Phaser.Scene) {
         color: '#888888'
     }).setOrigin(0.5);
     
+    // Stop all animations when level is complete
+    enemies.children.entries.forEach((enemy: any) => {
+        enemy.anims.stop();
+    });
+    
+    player.anims.stop();
+    
     this.physics.pause();
     gameTimer.remove();
 }
@@ -464,6 +471,14 @@ function gameOver(this: Phaser.Scene) {
         fontSize: '20px',
         color: '#888888'
     }).setOrigin(0.5);
+    
+    // Stop all enemy animations
+    enemies.children.entries.forEach((enemy: any) => {
+        enemy.anims.stop();
+    });
+    
+    // Also stop player animation
+    player.anims.stop();
     
     this.physics.pause();
     gameTimer.remove();
