@@ -30,20 +30,26 @@ export class AssetManager {
     }
 
     static createBasicTextures(scene: Phaser.Scene) {
-        scene.add.graphics()
-            .fillStyle(0xff0000)
-            .fillRect(0, 0, 32, 16)
-            .generateTexture('platform', 32, 16);
+        // Create platform texture
+        const platformGraphics = scene.add.graphics();
+        platformGraphics.fillStyle(0xff0000);
+        platformGraphics.fillRect(0, 0, 32, 16);
+        platformGraphics.generateTexture('platform', 32, 16);
+        platformGraphics.destroy();
         
-        scene.add.graphics()
-            .fillStyle(0xff00ff)
-            .fillRect(0, 0, 24, 24)
-            .generateTexture('enemy', 24, 24);
+        // Create enemy texture
+        const enemyGraphics = scene.add.graphics();
+        enemyGraphics.fillStyle(0xff00ff);
+        enemyGraphics.fillRect(0, 0, 24, 24);
+        enemyGraphics.generateTexture('enemy', 24, 24);
+        enemyGraphics.destroy();
         
-        scene.add.graphics()
-            .fillStyle(0x00ffff)
-            .fillRect(0, 0, 32, 32)
-            .generateTexture('exit', 32, 32);
+        // Create exit texture
+        const exitGraphics = scene.add.graphics();
+        exitGraphics.fillStyle(0x00ffff);
+        exitGraphics.fillRect(0, 0, 32, 32);
+        exitGraphics.generateTexture('exit', 32, 32);
+        exitGraphics.destroy();
     }
 
     static createAnimations(scene: Phaser.Scene) {

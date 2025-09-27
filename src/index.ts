@@ -4,6 +4,7 @@ import { LevelManager } from './levels/LevelManager';
 import { PlayerController } from './objects/PlayerController';
 import { EnemyManager } from './objects/EnemyManager';
 import { CollectiblesManager } from './objects/CollectiblesManager';
+import { ExitManager } from './objects/ExitManager';
 import { UISystem } from './systems/UISystem';
 import { GameStateManager } from './systems/GameStateManager';
 
@@ -13,6 +14,7 @@ class GameScene extends Phaser.Scene {
     private playerController!: PlayerController;
     private enemyManager!: EnemyManager;
     private collectiblesManager!: CollectiblesManager;
+    private exitManager!: ExitManager;
     private uiSystem!: UISystem;
     private gameStateManager!: GameStateManager;
     private gameTimer!: Phaser.Time.TimerEvent;
@@ -46,6 +48,10 @@ class GameScene extends Phaser.Scene {
         this.collectiblesManager = new CollectiblesManager(this);
         this.collectiblesManager.createCollectibles(this, this.currentLevel);
         this.uiSystem.updateItemsRemaining(this.collectiblesManager.getRemainingCount());
+        
+        // Create exit (hidden initially)
+        this.exitManager = new ExitManager(this);
+        this.exitManager.createExit(this.currentLevel);
         
         // Create enemies
         this.enemyManager = new EnemyManager(this);
@@ -89,6 +95,8 @@ class GameScene extends Phaser.Scene {
             undefined, 
             this
         );
+        
+        // Note: Exit collision is handled manually in update() since exit is not a physics sprite
     }
 
     update() {
@@ -105,9 +113,42 @@ class GameScene extends Phaser.Scene {
         this.playerController.update();
         this.enemyManager.update();
         
-        // Check win condition
-        if (this.collectiblesManager.areAllCollected() && !this.gameStateManager.isGameWon()) {
-            this.winLevel();
+        // Check if all items collected - show exit
+        if (this.collectiblesManager.areAllCollected() && !this.exitManager.isExitVisible()) {
+            this.exitManager.showExit();
+            // Show message that exit appeared
+            const exitText = this.add.text(400, 150, 'EXIT APPEARED!', {
+                fontSize: '24px',
+                color: '#00ff00'
+            }).setOrigin(0.5);
+            
+            // Fade out the message after 2 seconds
+            this.time.delayedCall(2000, () => {
+                this.tweens.add({
+                    targets: exitText,
+                    alpha: 0,
+                    duration: 500,
+                    onComplete: () => exitText.destroy()
+                });
+            });
+        }
+        
+        // Check exit collision manually (since exit is not a physics sprite)
+        if (this.exitManager.isExitVisible() && !this.gameStateManager.isGameEnded()) {
+            const player = this.playerController.getSprite();
+            const exit = this.exitManager.getSprite();
+            
+            if (player && exit) {
+                const distance = Phaser.Math.Distance.Between(
+                    player.x, player.y,
+                    exit.x, exit.y
+                );
+                
+                // If player is close enough to exit (within 30 pixels), trigger win
+                if (distance < 30) {
+                    this.winLevel();
+                }
+            }
         }
         
         // Check if air runs out
@@ -150,6 +191,7 @@ class GameScene extends Phaser.Scene {
         this.enemyManager.stopAllAnimations();
         this.playerController.stopAnimations();
         this.collectiblesManager.stopAllAnimations();
+        this.exitManager.stopAnimations();
         
         this.physics.pause();
         this.gameTimer.remove();
@@ -164,6 +206,7 @@ class GameScene extends Phaser.Scene {
         this.enemyManager.stopAllAnimations();
         this.playerController.stopAnimations();
         this.collectiblesManager.stopAllAnimations();
+        this.exitManager.stopAnimations();
         
         this.physics.pause();
         this.gameTimer.remove();

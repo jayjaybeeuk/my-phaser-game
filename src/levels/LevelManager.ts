@@ -10,6 +10,7 @@ export interface LevelConfig {
         tint?: number
     }>;
     playerStart: {x: number, y: number};
+    exit: {x: number, y: number};
 }
 
 export class LevelManager {
@@ -17,6 +18,7 @@ export class LevelManager {
         return {
             name: 'Central Cavern',
             playerStart: {x: 100, y: 450},
+            exit: {x: 400, y: 250}, // Center of the screen, middle level
             platforms: [
                 // Ground level
                 {x: 0, y: 584, width: 800},
