@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DEPTHS } from '../constants/depths';
 
 export class UISystem {
     private scoreText: Phaser.GameObjects.Text;
@@ -12,28 +13,28 @@ export class UISystem {
         this.scoreText = scene.add.text(16, 16, 'Score: 0', { 
             fontSize: '32px', 
             color: '#ffffff' 
-        });
+        }).setDepth(DEPTHS.UI_TEXT);
         
         this.levelText = scene.add.text(16, 56, levelName, { 
             fontSize: '24px', 
             color: '#ffff00' 
-        });
+        }).setDepth(DEPTHS.UI_TEXT);
         
         this.itemsText = scene.add.text(16, 96, 'Items: 0', {
             fontSize: '20px',
             color: '#00ff00'
-        });
+        }).setDepth(DEPTHS.UI_TEXT);
         
-        this.airBar = scene.add.graphics();
+        this.airBar = scene.add.graphics().setDepth(DEPTHS.UI_BACKGROUND);
         scene.add.text(600, 40, 'AIR', {
             fontSize: '16px',
             color: '#ffffff'
-        });
+        }).setDepth(DEPTHS.UI_TEXT);
         
         scene.add.text(400, 570, 'Arrow keys to move, UP to jump, R to restart', {
             fontSize: '14px',
             color: '#888888'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.UI_TEXT);
         
         this.updateAirBar();
     }
@@ -86,46 +87,56 @@ export class UISystem {
     }
 
     showGameOver(scene: Phaser.Scene, reason: string): void {
+        // Add silver background
+        const bg = scene.add.rectangle(400, 300, 400, 200, 0xc0c0c0, 0.9);
+        bg.setOrigin(0.5);
+        bg.setDepth(DEPTHS.GAME_OVER_BACKGROUND);
+
         scene.add.text(400, 250, 'GAME OVER', {
             fontSize: '48px',
             color: '#ff0000'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.GAME_OVER_TEXT);
         
         scene.add.text(400, 300, 'Final Score: ' + this.score, {
             fontSize: '32px',
             color: '#ffffff'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.GAME_OVER_TEXT);
         
         scene.add.text(400, 340, reason, {
             fontSize: '24px',
             color: '#ffff00'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.GAME_OVER_TEXT);
         
         scene.add.text(400, 380, 'Press R to restart', {
             fontSize: '20px',
             color: '#888888'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.GAME_OVER_TEXT);
     }
 
     showLevelComplete(scene: Phaser.Scene): void {
+        // Add silver background for level complete
+        const bg = scene.add.rectangle(400, 300, 450, 250, 0xc0c0c0, 0.9);
+        bg.setOrigin(0.5);
+        bg.setDepth(DEPTHS.LEVEL_COMPLETE_BACKGROUND);
+        
         scene.add.text(400, 250, 'LEVEL COMPLETE!', {
             fontSize: '48px',
             color: '#00ff00'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
         
         scene.add.text(400, 300, 'Score: ' + this.score, {
             fontSize: '32px',
             color: '#ffffff'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
         
         scene.add.text(400, 340, 'Air Bonus: ' + (this.airRemaining * 10), {
             fontSize: '24px',
             color: '#ffff00'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
         
         scene.add.text(400, 380, 'Press R to restart', {
             fontSize: '20px',
             color: '#888888'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
     }
 }
