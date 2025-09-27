@@ -149,6 +149,7 @@ class GameScene extends Phaser.Scene {
         // Stop all animations
         this.enemyManager.stopAllAnimations();
         this.playerController.stopAnimations();
+        this.collectiblesManager.stopAllAnimations();
         
         this.physics.pause();
         this.gameTimer.remove();
@@ -162,6 +163,7 @@ class GameScene extends Phaser.Scene {
         // Stop all animations
         this.enemyManager.stopAllAnimations();
         this.playerController.stopAnimations();
+        this.collectiblesManager.stopAllAnimations();
         
         this.physics.pause();
         this.gameTimer.remove();

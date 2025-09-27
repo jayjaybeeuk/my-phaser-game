@@ -34,4 +34,13 @@ export class CollectiblesManager {
     areAllCollected(): boolean {
         return this.collectibles.countActive(true) === 0;
     }
+
+    stopAllAnimations(): void {
+        this.collectibles.children.entries.forEach((child) => {
+            const coin = child as Phaser.Physics.Arcade.Sprite;
+            if (coin.anims) {
+                coin.anims.stop();
+            }
+        });
+    }
 }
