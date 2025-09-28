@@ -173,8 +173,7 @@ class GameScene extends Phaser.Scene {
         // Update items counter
         this.uiSystem.updateItemsRemaining(this.collectiblesManager.getRemainingCount());
         
-        // Add bonus air for each item collected
-        this.uiSystem.addAir(2);
+        // Coins no longer give air bonus - air only depletes over time
     }
 
     private hitEnemy(player: any, enemy: any) {
