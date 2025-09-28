@@ -37,8 +37,8 @@ export class AssetManager {
         
         // Load available sound files
         scene.load.audio('walkSound', 'assets/walk-sound.wav');
-        // Only load jump sound if you add the file later
         scene.load.audio('jumpSound', 'assets/jump-sound.wav');
+        scene.load.audio('dingSound', 'assets/ding-sound.wav');
         
         // Add comprehensive error handling
         scene.load.on('filefailed', (key: string, type: string, url: string) => {

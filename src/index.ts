@@ -19,6 +19,7 @@ class GameScene extends Phaser.Scene {
     private gameStateManager!: GameStateManager;
     private gameTimer!: Phaser.Time.TimerEvent;
     private restartKey!: Phaser.Input.Keyboard.Key;
+    private dingSound!: Phaser.Sound.BaseSound;
     private currentLevel = LevelManager.getCentralCavernLevel();
 
     preload() {
@@ -32,6 +33,9 @@ class GameScene extends Phaser.Scene {
         // Initialize game systems
         this.gameStateManager = new GameStateManager();
         this.uiSystem = new UISystem(this, this.currentLevel.name);
+        
+        // Create coin collection sound
+        this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
         
         // Create platforms
         this.platforms = this.physics.add.staticGroup();
@@ -159,6 +163,9 @@ class GameScene extends Phaser.Scene {
 
     private collectItem(player: any, collectible: any) {
         collectible.disableBody(true, true);
+        
+        // Play ding sound when coin is collected
+        this.dingSound.play();
         
         const newScore = this.uiSystem.getScore() + 100;
         this.uiSystem.updateScore(newScore);
