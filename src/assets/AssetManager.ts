@@ -25,8 +25,33 @@ export class AssetManager {
             frameHeight: 26
         });
         
+        // Load sound effects (fallback to generated sounds if files don't exist)
+        AssetManager.loadOrCreateSounds(scene);
+        
         // Create basic textures
         AssetManager.createBasicTextures(scene);
+    }
+
+    static loadOrCreateSounds(scene: Phaser.Scene) {
+        console.log('Loading sound assets...');
+        
+        // Load available sound files
+        scene.load.audio('walkSound', 'assets/walk-sound.wav');
+        // Only load jump sound if you add the file later
+        scene.load.audio('jumpSound', 'assets/jump-sound.wav');
+        
+        // Add comprehensive error handling
+        scene.load.on('filefailed', (key: string, type: string, url: string) => {
+            console.error(`Failed to load ${type}: ${key} from ${url}`);
+        });
+        
+        scene.load.on('fileload', (key: string, type: string, data: any) => {
+            console.log(`Successfully loaded ${type}: ${key}`);
+        });
+        
+        scene.load.on('complete', () => {
+            console.log('Sound loading complete');
+        });
     }
 
     static createBasicTextures(scene: Phaser.Scene) {
