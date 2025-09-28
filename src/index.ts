@@ -184,7 +184,8 @@ class GameScene extends Phaser.Scene {
 
     private depleteAir() {
         if (!this.gameStateManager.isGameEnded()) {
-            this.uiSystem.depleteAir();
+            // Deplete air twice as fast (2 per second instead of 1)
+            this.uiSystem.depleteAir(2);
         }
     }
 
