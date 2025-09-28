@@ -80,6 +80,50 @@ class GameScene extends Phaser.Scene {
         
         // Add restart key
         this.restartKey = this.input.keyboard!.addKey('R');
+        
+        // Setup gamepad for restart functionality
+        this.setupGamepadInput();
+    }
+    
+    private setupGamepadInput(): void {
+        try {
+            // Check if gamepad plugin exists
+            if (!this.input.gamepad) {
+                console.log('Gamepad plugin not available in main scene');
+                return;
+            }
+            
+            // Enable gamepad plugin
+            if (!this.input.gamepad.enabled) {
+                this.input.gamepad.start();
+            }
+        } catch (error) {
+            console.log('Main scene gamepad setup failed:', error);
+        }
+    }
+    
+    private isRestartPressed(): boolean {
+        // Check keyboard R key
+        const keyboardRestart = this.restartKey.isDown;
+        
+        // Check gamepad start/menu button or select button
+        let gamepadRestart = false;
+        try {
+            if (this.input.gamepad && this.input.gamepad.total > 0) {
+                const gamepad = this.input.gamepad.getPad(0);
+                if (gamepad && gamepad.buttons) {
+                    // Start button, Select button, or any shoulder button for restart
+                    gamepadRestart = gamepad.buttons[9]?.pressed || // Start button
+                                    gamepad.buttons[8]?.pressed || // Select button  
+                                    gamepad.buttons[4]?.pressed || // L1/LB
+                                    gamepad.buttons[5]?.pressed;   // R1/RB
+                }
+            }
+        } catch (error) {
+            // Gamepad check failed, just use keyboard
+        }
+        
+        return keyboardRestart || gamepadRestart;
     }
 
     private setupPhysics() {
@@ -111,8 +155,8 @@ class GameScene extends Phaser.Scene {
 
     update() {
         if (this.gameStateManager.isGameEnded()) {
-            // Check for restart
-            if (this.restartKey.isDown) {
+            // Check for restart from keyboard or gamepad
+            if (this.isRestartPressed()) {
                 this.scene.restart();
                 this.resetGame();
             }
@@ -370,6 +414,9 @@ const config: Phaser.Types.Core.GameConfig = {
     width: 800,
     height: 600,
     backgroundColor: '#000000',
+    input: {
+        gamepad: true  // Enable gamepad support
+    },
     physics: {
         default: 'arcade',
         arcade: {

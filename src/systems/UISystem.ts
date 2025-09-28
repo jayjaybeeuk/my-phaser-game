@@ -31,7 +31,7 @@ export class UISystem {
             color: '#ffffff'
         }).setDepth(DEPTHS.UI_TEXT);
         
-        scene.add.text(400, 570, 'Arrow keys to move, UP to jump, R to restart', {
+        scene.add.text(400, 570, 'Arrow keys or gamepad to move, UP/A button to jump, R/Start to restart', {
             fontSize: '14px',
             color: '#888888'
         }).setOrigin(0.5).setDepth(DEPTHS.UI_TEXT);
