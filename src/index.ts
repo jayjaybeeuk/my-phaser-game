@@ -7,6 +7,7 @@ import { CollectiblesManager } from './objects/CollectiblesManager';
 import { ExitManager } from './objects/ExitManager';
 import { UISystem } from './systems/UISystem';
 import { GameStateManager } from './systems/GameStateManager';
+import { DEPTHS } from './constants/depths';
 
 // Game scene class
 class GameScene extends Phaser.Scene {
@@ -21,6 +22,11 @@ class GameScene extends Phaser.Scene {
     private restartKey!: Phaser.Input.Keyboard.Key;
     private dingSound!: Phaser.Sound.BaseSound;
     private currentLevel = LevelManager.getCentralCavernLevel();
+    private currentLevelIndex = 0;
+    private levels = [
+        LevelManager.getCentralCavernLevel(),
+        LevelManager.getUndergroundChamberLevel()
+    ];
 
     preload() {
         AssetManager.preloadAssets(this);
@@ -192,16 +198,19 @@ class GameScene extends Phaser.Scene {
     private winLevel() {
         this.gameStateManager.setGameWon();
         
-        this.uiSystem.showLevelComplete(this);
-        
-        // Stop all animations
-        this.enemyManager.stopAllAnimations();
-        this.playerController.stopAnimations();
-        this.collectiblesManager.stopAllAnimations();
-        this.exitManager.stopAnimations();
-        
-        this.physics.pause();
-        this.gameTimer.remove();
+        // Check if there's a next level
+        if (this.currentLevelIndex < this.levels.length - 1) {
+            // Progress to next level
+            this.showLevelComplete();
+            
+            // Wait 2 seconds then load next level
+            this.time.delayedCall(2000, () => {
+                this.loadNextLevel();
+            });
+        } else {
+            // Game completed - all levels finished!
+            this.showGameComplete();
+        }
     }
 
     private gameOver(reason: string) {
@@ -221,6 +230,137 @@ class GameScene extends Phaser.Scene {
 
     private resetGame() {
         this.gameStateManager.reset();
+        // Reset to first level when restarting
+        this.currentLevelIndex = 0;
+        this.currentLevel = this.levels[0];
+    }
+    
+    private showLevelComplete() {
+        this.uiSystem.showLevelComplete(this);
+        
+        // Stop all animations
+        this.enemyManager.stopAllAnimations();
+        this.playerController.stopAnimations();
+        this.collectiblesManager.stopAllAnimations();
+        this.exitManager.stopAnimations();
+        
+        this.physics.pause();
+        this.gameTimer.remove();
+    }
+    
+    private showGameComplete() {
+        // Show final completion message
+        const bg = this.add.rectangle(400, 300, 500, 300, 0xc0c0c0, 0.9);
+        bg.setOrigin(0.5);
+        bg.setDepth(DEPTHS.LEVEL_COMPLETE_BACKGROUND);
+        
+        this.add.text(400, 220, 'GAME COMPLETE!', {
+            fontSize: '48px',
+            color: '#00ff00'
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
+        
+        this.add.text(400, 280, 'All levels conquered!', {
+            fontSize: '32px',
+            color: '#ffffff'
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
+        
+        this.add.text(400, 320, 'Final Score: ' + this.uiSystem.getScore(), {
+            fontSize: '24px',
+            color: '#ffff00'
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
+        
+        this.add.text(400, 360, 'Press R to restart from beginning', {
+            fontSize: '18px',
+            color: '#888888'
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
+        
+        // Stop all animations
+        this.enemyManager.stopAllAnimations();
+        this.playerController.stopAnimations();
+        this.collectiblesManager.stopAllAnimations();
+        this.exitManager.stopAnimations();
+        
+        this.physics.pause();
+        this.gameTimer.remove();
+    }
+    
+    private loadNextLevel() {
+        // Move to next level
+        this.currentLevelIndex++;
+        this.currentLevel = this.levels[this.currentLevelIndex];
+        
+        // Reset game state
+        this.gameStateManager.reset();
+        
+        // Clean up ALL UI elements and game objects
+        this.children.removeAll();
+        
+        // Clear game objects
+        this.platforms.clear(true, true);
+        this.collectiblesManager.getGroup().clear(true, true);
+        this.enemyManager.getGroup().clear(true, true);
+        this.playerController.getSprite().destroy();
+        this.exitManager.getSprite()?.destroy();
+        
+        // Remove the timer if it exists
+        if (this.gameTimer) {
+            this.gameTimer.remove();
+        }
+        
+        // Create new level
+        this.createLevel();
+    }
+    
+    private createLevel() {
+        // Preserve score from previous level
+        const currentScore = this.uiSystem ? this.uiSystem.getScore() : 0;
+        
+        // Update UI with new level name (this creates new UI elements)
+        this.uiSystem = new UISystem(this, this.currentLevel.name);
+        
+        // Restore the score from previous level
+        this.uiSystem.updateScore(currentScore);
+        
+        // Create coin collection sound
+        this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
+        
+        // Create platforms
+        this.platforms = this.physics.add.staticGroup();
+        LevelManager.createPlatforms(this, this.platforms, this.currentLevel);
+        
+        // Create player
+        this.playerController = new PlayerController(
+            this, 
+            this.currentLevel.playerStart.x, 
+            this.currentLevel.playerStart.y
+        );
+        
+        // Create collectibles
+        this.collectiblesManager = new CollectiblesManager(this);
+        this.collectiblesManager.createCollectibles(this, this.currentLevel);
+        this.uiSystem.updateItemsRemaining(this.collectiblesManager.getRemainingCount());
+        
+        // Create exit (hidden initially)
+        this.exitManager = new ExitManager(this);
+        this.exitManager.createExit(this.currentLevel);
+        
+        // Create enemies
+        this.enemyManager = new EnemyManager(this);
+        this.enemyManager.createEnemies(this, this.currentLevel);
+        
+        // Set up physics collisions
+        this.setupPhysics();
+        
+        // Start air depletion timer
+        this.gameTimer = this.time.addEvent({
+            delay: 1000,
+            callback: this.depleteAir,
+            callbackScope: this,
+            loop: true
+        });
+        
+        // Resume physics
+        this.physics.resume();
     }
 }
 
