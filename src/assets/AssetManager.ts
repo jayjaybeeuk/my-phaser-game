@@ -55,9 +55,9 @@ export class AssetManager {
     }
 
     static createBasicTextures(scene: Phaser.Scene) {
-        // Create platform texture
+        // Create platform texture (white so tinting works properly)
         const platformGraphics = scene.add.graphics();
-        platformGraphics.fillStyle(0xff0000);
+        platformGraphics.fillStyle(0xffffff);
         platformGraphics.fillRect(0, 0, 32, 16);
         platformGraphics.generateTexture('platform', 32, 16);
         platformGraphics.destroy();

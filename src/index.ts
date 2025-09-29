@@ -25,7 +25,8 @@ class GameScene extends Phaser.Scene {
     private currentLevelIndex = 0;
     private levels = [
         LevelManager.getCentralCavernLevel(),
-        LevelManager.getUndergroundChamberLevel()
+        LevelManager.getUndergroundChamberLevel(),
+        LevelManager.getArcticZoneLevel()
     ];
 
     preload() {
@@ -33,6 +34,11 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
+        // Set level-specific background color
+        if (this.currentLevel.backgroundColor !== undefined) {
+            this.cameras.main.setBackgroundColor(this.currentLevel.backgroundColor);
+        }
+        
         // Create animations
         AssetManager.createAnimations(this);
         
@@ -356,6 +362,13 @@ class GameScene extends Phaser.Scene {
     }
     
     private createLevel() {
+        // Set level-specific background color
+        if (this.currentLevel.backgroundColor !== undefined) {
+            this.cameras.main.setBackgroundColor(this.currentLevel.backgroundColor);
+        } else {
+            this.cameras.main.setBackgroundColor('#000000'); // Default black
+        }
+        
         // Preserve score from previous level
         const currentScore = this.uiSystem ? this.uiSystem.getScore() : 0;
         

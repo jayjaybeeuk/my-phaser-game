@@ -11,6 +11,8 @@ export interface LevelConfig {
     }>;
     playerStart: {x: number, y: number};
     exit: {x: number, y: number};
+    backgroundColor?: number;
+    platformTint?: number;
 }
 
 export class LevelManager {
@@ -117,10 +119,85 @@ export class LevelManager {
         };
     }
 
+    static getArcticZoneLevel(): LevelConfig {
+        return {
+            name: 'Arctic Zone',
+            backgroundColor: 0x001a4d, // Dark blue background
+            platformTint: 0x4db8ff,    // Light blue platforms
+            playerStart: {x: 50, y: 520},
+            exit: {x: 400, y: 100}, // Top center - requires navigating the ice platforms
+            platforms: [
+                // Ground level - icy floor with gaps
+                {x: 0, y: 584, width: 160},
+                {x: 224, y: 584, width: 192},
+                {x: 480, y: 584, width: 160},
+                {x: 704, y: 584, width: 96},
+                
+                // Lower platforms - floating ice blocks
+                {x: 96, y: 500, width: 96},
+                {x: 352, y: 520, width: 128},
+                {x: 640, y: 500, width: 128},
+                
+                // Mid-level platforms
+                {x: 32, y: 420, width: 128},
+                {x: 224, y: 440, width: 96},
+                {x: 400, y: 420, width: 160},
+                {x: 640, y: 440, width: 96},
+                
+                // Upper-mid platforms
+                {x: 128, y: 340, width: 128},
+                {x: 320, y: 360, width: 96},
+                {x: 480, y: 340, width: 128},
+                {x: 680, y: 360, width: 96},
+                
+                // High platforms
+                {x: 64, y: 260, width: 96},
+                {x: 224, y: 280, width: 128},
+                {x: 416, y: 260, width: 96},
+                {x: 576, y: 280, width: 128},
+                
+                // Very high platforms
+                {x: 160, y: 180, width: 96},
+                {x: 320, y: 200, width: 160},
+                {x: 544, y: 180, width: 96},
+                
+                // Top platforms - near exit
+                {x: 96, y: 120, width: 128},
+                {x: 288, y: 120, width: 224},
+                {x: 576, y: 120, width: 128}
+            ],
+            collectibles: [
+                // Ground level
+                {x: 80, y: 564}, {x: 280, y: 564}, {x: 360, y: 564}, {x: 540, y: 564}, {x: 740, y: 564},
+                // Lower platforms
+                {x: 144, y: 480}, {x: 400, y: 500}, {x: 680, y: 480},
+                // Mid-level
+                {x: 80, y: 400}, {x: 272, y: 420}, {x: 480, y: 400}, {x: 688, y: 420},
+                // Upper-mid
+                {x: 176, y: 320}, {x: 368, y: 340}, {x: 528, y: 320}, {x: 728, y: 340},
+                // High platforms
+                {x: 112, y: 240}, {x: 280, y: 260}, {x: 464, y: 240}, {x: 632, y: 260},
+                // Very high
+                {x: 208, y: 160}, {x: 368, y: 180}, {x: 432, y: 180}, {x: 592, y: 160},
+                // Top level
+                {x: 144, y: 100}, {x: 336, y: 100}, {x: 400, y: 100}, {x: 464, y: 100}, {x: 624, y: 100}
+            ],
+            enemies: [
+                {x: 300, y: 550, type: 'enemy-one', velocity: -100},
+                {x: 480, y: 400, type: 'enemy-two', velocity: 90},
+                {x: 200, y: 320, type: 'basic', velocity: 70, tint: 0xaaffff}, // Ice white enemy
+                {x: 500, y: 240, type: 'basic', velocity: -85, tint: 0x0080ff}, // Ice blue enemy
+                {x: 370, y: 180, type: 'basic', velocity: 60, tint: 0x80c0ff}, // Light ice blue enemy
+                {x: 650, y: 340, type: 'basic', velocity: -75, tint: 0x00ffff}  // Cyan enemy
+            ]
+        };
+    }
+
     static createPlatforms(scene: Phaser.Scene, platforms: Phaser.Physics.Arcade.StaticGroup, levelConfig: LevelConfig) {
+        const platformTint = levelConfig.platformTint || 0xff0000; // Default to red if not specified
         levelConfig.platforms.forEach(platform => {
             for (let x = platform.x; x < platform.x + platform.width; x += 32) {
-                platforms.create(x + 16, platform.y, 'platform').setTint(0xff0000);
+                platforms.create(x + 16, platform.y, 'platform').setTint(platformTint);
             }
         });
     }
