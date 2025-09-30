@@ -133,10 +133,5 @@ export class UISystem {
             fontSize: '24px',
             color: '#ffff00'
         }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
-        
-        scene.add.text(400, 380, 'Press R to restart', {
-            fontSize: '20px',
-            color: '#888888'
-        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
     }
 }

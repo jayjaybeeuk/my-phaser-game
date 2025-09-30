@@ -314,14 +314,9 @@ class GameScene extends Phaser.Scene {
             color: '#ffffff'
         }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
         
-        this.add.text(400, 320, 'Final Score: ' + this.uiSystem.getScore(), {
+        this.add.text(400, 340, 'Final Score: ' + this.uiSystem.getScore(), {
             fontSize: '24px',
             color: '#ffff00'
-        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
-        
-        this.add.text(400, 360, 'Press R to restart from beginning', {
-            fontSize: '18px',
-            color: '#888888'
         }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
         
         // Stop all animations
