@@ -4,14 +4,27 @@ export class TitleScene extends Phaser.Scene {
     private startKey!: Phaser.Input.Keyboard.Key;
     private enterKey!: Phaser.Input.Keyboard.Key;
     private pressStartText!: Phaser.GameObjects.Text;
+    private music!: Phaser.Sound.BaseSound;
 
     constructor() {
         super({ key: 'TitleScene' });
     }
 
+    preload() {
+        // Load the intro music
+        this.load.audio('introMusic', 'assets/music-intro.wav');
+    }
+
     create() {
         // Set background color to black
         this.cameras.main.setBackgroundColor('#000000');
+
+        // Start playing the intro music on loop
+        this.music = this.sound.add('introMusic', {
+            volume: 0.5,
+            loop: true
+        });
+        this.music.play();
 
         // Game title
         this.add.text(400, 150, 'MANIACAL MINER', {
@@ -114,6 +127,9 @@ export class TitleScene extends Phaser.Scene {
 
     update() {
         if (this.isStartPressed()) {
+            // Stop the music before transitioning to game
+            this.music.stop();
+            
             // Start the game
             this.scene.start('GameScene');
         }
