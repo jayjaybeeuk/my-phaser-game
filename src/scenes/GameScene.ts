@@ -20,6 +20,7 @@ export class GameScene extends Phaser.Scene {
     private gameTimer!: Phaser.Time.TimerEvent;
     private restartKey!: Phaser.Input.Keyboard.Key;
     private dingSound!: Phaser.Sound.BaseSound;
+    private levelMusic!: Phaser.Sound.BaseSound;
     private currentLevel = LevelManager.getCentralCavernLevel();
     private currentLevelIndex = 0;
     private levels = [
@@ -34,6 +35,9 @@ export class GameScene extends Phaser.Scene {
 
     preload() {
         AssetManager.preloadAssets(this);
+        
+        // Load level music
+        this.load.audio('levelMusic', 'assets/music-level.wav');
     }
 
     create() {
@@ -44,6 +48,13 @@ export class GameScene extends Phaser.Scene {
         
         // Create animations
         AssetManager.createAnimations(this);
+        
+        // Start playing the level music on loop
+        this.levelMusic = this.sound.add('levelMusic', {
+            volume: 0.4,
+            loop: true
+        });
+        this.levelMusic.play();
         
         // Initialize game systems
         this.gameStateManager = new GameStateManager();
@@ -277,6 +288,11 @@ export class GameScene extends Phaser.Scene {
         this.collectiblesManager.stopAllAnimations();
         this.exitManager.stopAnimations();
         
+        // Stop the level music
+        if (this.levelMusic) {
+            this.levelMusic.stop();
+        }
+        
         this.physics.pause();
         this.gameTimer.remove();
     }
@@ -327,6 +343,11 @@ export class GameScene extends Phaser.Scene {
         this.playerController.stopAnimations();
         this.collectiblesManager.stopAllAnimations();
         this.exitManager.stopAnimations();
+        
+        // Stop the level music
+        if (this.levelMusic) {
+            this.levelMusic.stop();
+        }
         
         this.physics.pause();
         this.gameTimer.remove();
