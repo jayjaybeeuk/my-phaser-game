@@ -14,7 +14,8 @@ export class PlayerController {
         this.scene = scene;
         this.player = scene.physics.add.sprite(x, y, 'player');
         this.player.setBounce(0);
-        this.player.setCollideWorldBounds(true);
+        // Don't use setCollideWorldBounds as we want custom wraparound behavior
+        // We'll manually keep player in bounds except for bottom edge
         this.player.anims.play('idle');
 
         this.cursors = scene.input.keyboard!.createCursorKeys();
@@ -193,6 +194,34 @@ export class PlayerController {
 
     getSprite(): Phaser.Physics.Arcade.Sprite {
         return this.player;
+    }
+
+    checkVerticalWrap(sceneHeight: number = 600, sceneWidth: number = 800): void {
+        // Manual bounds checking for left, right, and top
+        const body = this.player.body as Phaser.Physics.Arcade.Body;
+        const halfWidth = body.width / 2;
+        const halfHeight = body.height / 2;
+        
+        // Keep player within left and right bounds
+        if (this.player.x < halfWidth) {
+            this.player.x = halfWidth;
+            this.player.setVelocityX(0);
+        } else if (this.player.x > sceneWidth - halfWidth) {
+            this.player.x = sceneWidth - halfWidth;
+            this.player.setVelocityX(0);
+        }
+        
+        // Keep player below top bound
+        if (this.player.y < halfHeight) {
+            this.player.y = halfHeight;
+            this.player.setVelocityY(0);
+        }
+        
+        // Vertical wraparound: if player falls below bottom, wrap to top
+        if (this.player.y > sceneHeight + halfHeight) {
+            this.player.y = halfHeight; // Appear at top
+            this.player.setVelocityY(100); // Give slight downward momentum for natural feel
+        }
     }
 
     update(): void {

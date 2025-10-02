@@ -185,6 +185,10 @@ export class GameScene extends Phaser.Scene {
         
         // Update game objects
         this.playerController.update();
+        
+        // Check for vertical wraparound and manual bounds (for levels with gaps in floor)
+        this.playerController.checkVerticalWrap(600, 800);
+        
         this.enemyManager.update();
         
         // Check if all items collected - show exit
