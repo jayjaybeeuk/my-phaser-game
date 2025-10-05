@@ -1,9 +1,12 @@
 import Phaser from 'phaser';
+import { MusicManager } from '../systems/MusicManager';
 
 export class TitleScene extends Phaser.Scene {
     private startKey!: Phaser.Input.Keyboard.Key;
     private enterKey!: Phaser.Input.Keyboard.Key;
+    private mKey!: Phaser.Input.Keyboard.Key;
     private pressStartText!: Phaser.GameObjects.Text;
+    private musicToggleText!: Phaser.GameObjects.Text;
     private music!: Phaser.Sound.BaseSound;
 
     constructor() {
@@ -19,12 +22,15 @@ export class TitleScene extends Phaser.Scene {
         // Set background color to black
         this.cameras.main.setBackgroundColor('#000000');
 
-        // Start playing the intro music on loop
+        // Start playing the intro music on loop (if enabled)
         this.music = this.sound.add('introMusic', {
             volume: 0.5,
             loop: true
         });
-        this.music.play();
+        
+        if (MusicManager.isMusicEnabled()) {
+            this.music.play();
+        }
 
         // Game title
         this.add.text(400, 150, 'MANIACAL MINER', {
@@ -66,8 +72,21 @@ export class TitleScene extends Phaser.Scene {
             color: '#ffffff'
         }).setOrigin(0.5);
 
+        // Music toggle instruction
+        this.add.text(400, 505, 'M or SELECT to Toggle Music', {
+            fontSize: '16px',
+            color: '#aaaaaa'
+        }).setOrigin(0.5);
+        
+        // Music status indicator
+        this.musicToggleText = this.add.text(400, 525, '', {
+            fontSize: '14px',
+            color: '#00ffff'
+        }).setOrigin(0.5);
+        this.updateMusicToggleText();
+
         // Flashing "Press Start" text
-        this.pressStartText = this.add.text(400, 530, 'PRESS ENTER OR START TO BEGIN', {
+        this.pressStartText = this.add.text(400, 555, 'PRESS ENTER OR START TO BEGIN', {
             fontSize: '20px',
             color: '#ffffff'
         }).setOrigin(0.5);
@@ -84,6 +103,7 @@ export class TitleScene extends Phaser.Scene {
         // Setup input
         this.startKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+        this.mKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.M);
         
         // Setup gamepad
         this.setupGamepadInput();
@@ -124,8 +144,53 @@ export class TitleScene extends Phaser.Scene {
         
         return keyboardStart || gamepadStart;
     }
+    
+    private isMusicTogglePressed(): boolean {
+        // Check keyboard M key
+        const keyboardToggle = Phaser.Input.Keyboard.JustDown(this.mKey);
+        
+        // Check gamepad select button
+        let gamepadToggle = false;
+        try {
+            if (this.input.gamepad && this.input.gamepad.total > 0) {
+                const gamepad = this.input.gamepad.getPad(0);
+                if (gamepad && gamepad.buttons) {
+                    // Select button (button 8)
+                    gamepadToggle = gamepad.buttons[8]?.pressed;
+                }
+            }
+        } catch (error) {
+            // Gamepad check failed, just use keyboard
+        }
+        
+        return keyboardToggle || gamepadToggle;
+    }
+    
+    private updateMusicToggleText(): void {
+        const status = MusicManager.isMusicEnabled() ? 'ON' : 'OFF';
+        const color = MusicManager.isMusicEnabled() ? '#00ff00' : '#ff0000';
+        this.musicToggleText.setText(`Music: ${status}`);
+        this.musicToggleText.setColor(color);
+    }
 
     update() {
+        // Check for music toggle
+        if (this.isMusicTogglePressed()) {
+            MusicManager.toggleMusic();
+            this.updateMusicToggleText();
+            
+            // Toggle music playback immediately
+            if (MusicManager.isMusicEnabled()) {
+                if (!this.music.isPlaying) {
+                    this.music.play();
+                }
+            } else {
+                if (this.music.isPlaying) {
+                    this.music.stop();
+                }
+            }
+        }
+        
         if (this.isStartPressed()) {
             // Stop the music before transitioning to game
             this.music.stop();

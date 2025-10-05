@@ -8,6 +8,7 @@ import { AirCapsuleManager } from '../objects/AirCapsuleManager';
 import { ExitManager } from '../objects/ExitManager';
 import { UISystem } from '../systems/UISystem';
 import { GameStateManager } from '../systems/GameStateManager';
+import { MusicManager } from '../systems/MusicManager';
 import { DEPTHS } from '../constants/depths';
 
 export class GameScene extends Phaser.Scene {
@@ -51,12 +52,15 @@ export class GameScene extends Phaser.Scene {
         // Create animations
         AssetManager.createAnimations(this);
         
-        // Start playing the level music on loop
+        // Start playing the level music on loop (if enabled)
         this.levelMusic = this.sound.add('levelMusic', {
             volume: 0.4,
             loop: true
         });
-        this.levelMusic.play();
+        
+        if (MusicManager.isMusicEnabled()) {
+            this.levelMusic.play();
+        }
         
         // Initialize game systems
         this.gameStateManager = new GameStateManager();
