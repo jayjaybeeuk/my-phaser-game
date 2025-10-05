@@ -205,11 +205,14 @@ export class GameScene extends Phaser.Scene {
         if (this.gameStateManager.isGameEnded()) {
             // Check for any key press to continue or return to title (with delay to prevent immediate trigger)
             if (this.canPressKey && this.isAnyKeyPressed()) {
-                if (this.gameStateManager.hasLivesRemaining()) {
-                    // Continue on same level
+                if (this.gameStateManager.isGameWon()) {
+                    // Game was won (either level complete or full game complete) - return to title
+                    this.returnToTitle();
+                } else if (this.gameStateManager.hasLivesRemaining()) {
+                    // Lost a life but have lives remaining - continue on same level
                     this.continueLevel();
                 } else {
-                    // Return to title screen
+                    // No lives left - return to title screen
                     this.returnToTitle();
                 }
             }
@@ -433,6 +436,9 @@ export class GameScene extends Phaser.Scene {
     }
     
     private showGameComplete() {
+        // Mark game as ended so update() will check for key presses
+        this.gameStateManager.setGameOver();
+        
         // Show final completion message
         const bg = this.add.rectangle(400, 300, 500, 300, 0xc0c0c0, 0.9);
         bg.setOrigin(0.5);
@@ -453,6 +459,11 @@ export class GameScene extends Phaser.Scene {
             color: '#ffff00'
         }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
         
+        this.add.text(400, 380, 'Press ENTER or START to return to title', {
+            fontSize: '20px',
+            color: '#888888'
+        }).setOrigin(0.5).setDepth(DEPTHS.LEVEL_COMPLETE_TEXT);
+        
         // Stop all animations
         this.enemyManager.stopAllAnimations();
         this.playerController.stopAnimations();
@@ -467,6 +478,12 @@ export class GameScene extends Phaser.Scene {
         
         this.physics.pause();
         this.gameTimer.remove();
+        
+        // Disable key press for a short moment to prevent immediate restart
+        this.canPressKey = false;
+        this.time.delayedCall(500, () => {
+            this.canPressKey = true;
+        });
     }
     
     private loadNextLevel() {
