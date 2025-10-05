@@ -8,6 +8,7 @@ export class TitleScene extends Phaser.Scene {
     private pressStartText!: Phaser.GameObjects.Text;
     private musicToggleText!: Phaser.GameObjects.Text;
     private music!: Phaser.Sound.BaseSound;
+    private canStart: boolean = false;
 
     constructor() {
         super({ key: 'TitleScene' });
@@ -21,6 +22,9 @@ export class TitleScene extends Phaser.Scene {
     create() {
         // Set background color to black
         this.cameras.main.setBackgroundColor('#000000');
+        
+        // Reset canStart flag
+        this.canStart = false;
 
         // Start playing the intro music on loop (if enabled)
         this.music = this.sound.add('introMusic', {
@@ -105,8 +109,16 @@ export class TitleScene extends Phaser.Scene {
         this.enterKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
         this.mKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.M);
         
+        // Clear/reset all key states to prevent carryover from previous scene
+        this.input.keyboard!.resetKeys();
+        
         // Setup gamepad
         this.setupGamepadInput();
+        
+        // Delay start detection to prevent immediate start from game over screen
+        this.time.delayedCall(1000, () => {
+            this.canStart = true;
+        });
     }
 
     private setupGamepadInput(): void {
@@ -191,7 +203,8 @@ export class TitleScene extends Phaser.Scene {
             }
         }
         
-        if (this.isStartPressed()) {
+        // Only allow starting after delay
+        if (this.canStart && this.isStartPressed()) {
             // Stop the music before transitioning to game
             this.music.stop();
             

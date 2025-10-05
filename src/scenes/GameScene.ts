@@ -26,6 +26,7 @@ export class GameScene extends Phaser.Scene {
     private levelMusic!: Phaser.Sound.BaseSound;
     private currentLevel = LevelManager.getCentralCavernLevel();
     private currentLevelIndex = 0;
+    private canPressKey: boolean = true;
     private levels = [
         LevelManager.getCentralCavernLevel(),
         LevelManager.getUndergroundChamberLevel(),
@@ -65,6 +66,9 @@ export class GameScene extends Phaser.Scene {
         // Initialize game systems
         this.gameStateManager = new GameStateManager();
         this.uiSystem = new UISystem(this, this.currentLevel.name);
+        
+        // Update lives display
+        this.uiSystem.updateLives(this.gameStateManager.getLives());
         
         // Create coin collection sound
         this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
@@ -132,28 +136,32 @@ export class GameScene extends Phaser.Scene {
         }
     }
     
-    private isRestartPressed(): boolean {
-        // Check keyboard R key
-        const keyboardRestart = this.restartKey.isDown;
+    private isAnyKeyPressed(): boolean {
+        // Only check for ENTER key
+        const keyboard = this.input.keyboard;
+        if (keyboard) {
+            const enterKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER, false);
+            if (Phaser.Input.Keyboard.JustDown(enterKey)) {
+                return true;
+            }
+        }
         
-        // Check gamepad start/menu button or select button
-        let gamepadRestart = false;
+        // Check for gamepad START button only
         try {
             if (this.input.gamepad && this.input.gamepad.total > 0) {
                 const gamepad = this.input.gamepad.getPad(0);
                 if (gamepad && gamepad.buttons) {
-                    // Start button, Select button, or any shoulder button for restart
-                    gamepadRestart = gamepad.buttons[9]?.pressed || // Start button
-                                    gamepad.buttons[8]?.pressed || // Select button  
-                                    gamepad.buttons[4]?.pressed || // L1/LB
-                                    gamepad.buttons[5]?.pressed;   // R1/RB
+                    // Only check START button (button 9)
+                    if (gamepad.buttons[9]?.pressed) {
+                        return true;
+                    }
                 }
             }
         } catch (error) {
-            // Gamepad check failed, just use keyboard
+            // Gamepad check failed
         }
         
-        return keyboardRestart || gamepadRestart;
+        return false;
     }
 
     private setupPhysics() {
@@ -195,10 +203,15 @@ export class GameScene extends Phaser.Scene {
 
     update() {
         if (this.gameStateManager.isGameEnded()) {
-            // Check for restart from keyboard or gamepad
-            if (this.isRestartPressed()) {
-                this.scene.restart();
-                this.resetGame();
+            // Check for any key press to continue or return to title (with delay to prevent immediate trigger)
+            if (this.canPressKey && this.isAnyKeyPressed()) {
+                if (this.gameStateManager.hasLivesRemaining()) {
+                    // Continue on same level
+                    this.continueLevel();
+                } else {
+                    // Return to title screen
+                    this.returnToTitle();
+                }
             }
             return;
         }
@@ -332,9 +345,14 @@ export class GameScene extends Phaser.Scene {
     }
 
     private gameOver(reason: string) {
+        // Lose a life
+        const livesRemaining = this.gameStateManager.loseLife();
+        this.uiSystem.updateLives(livesRemaining);
+        
         this.gameStateManager.setGameOver();
         
-        this.uiSystem.showGameOver(this, reason);
+        // Show different message based on lives remaining
+        this.uiSystem.showGameOver(this, reason, this.gameStateManager.hasLivesRemaining());
         
         // Stop all animations
         this.enemyManager.stopAllAnimations();
@@ -350,13 +368,54 @@ export class GameScene extends Phaser.Scene {
         
         this.physics.pause();
         this.gameTimer.remove();
+        
+        // Disable key press for a short moment to prevent immediate restart
+        this.canPressKey = false;
+        this.time.delayedCall(500, () => {
+            this.canPressKey = true;
+        });
     }
 
     private resetGame() {
         this.gameStateManager.reset();
+        this.gameStateManager.resetLives();
         // Reset to first level when restarting
         this.currentLevelIndex = 0;
         this.currentLevel = this.levels[0];
+    }
+    
+    private continueLevel() {
+        // Reset game state but keep current level and score
+        this.gameStateManager.reset();
+        
+        // Clean up UI elements and game objects
+        this.children.removeAll();
+        
+        // Clear game objects
+        this.platforms.clear(true, true);
+        this.collectiblesManager.getGroup().clear(true, true);
+        this.airCapsuleManager.getGroup().clear(true, true);
+        this.enemyManager.getGroup().clear(true, true);
+        this.playerController.getSprite().destroy();
+        this.exitManager.getSprite()?.destroy();
+        
+        // Remove the timer if it exists
+        if (this.gameTimer) {
+            this.gameTimer.remove();
+        }
+        
+        // Recreate the current level (preserving score)
+        this.createLevel();
+    }
+    
+    private returnToTitle() {
+        // Stop music if playing
+        if (this.levelMusic) {
+            this.levelMusic.stop();
+        }
+        
+        // Return to title scene
+        this.scene.start('TitleScene');
     }
     
     private showLevelComplete() {
@@ -454,6 +513,9 @@ export class GameScene extends Phaser.Scene {
         
         // Restore the score from previous level
         this.uiSystem.updateScore(currentScore);
+        
+        // Update lives display
+        this.uiSystem.updateLives(this.gameStateManager.getLives());
         
         // Create coin collection sound
         this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
