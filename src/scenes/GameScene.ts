@@ -4,6 +4,7 @@ import { LevelManager } from '../levels/LevelManager';
 import { PlayerController } from '../objects/PlayerController';
 import { EnemyManager } from '../objects/EnemyManager';
 import { CollectiblesManager } from '../objects/CollectiblesManager';
+import { AirCapsuleManager } from '../objects/AirCapsuleManager';
 import { ExitManager } from '../objects/ExitManager';
 import { UISystem } from '../systems/UISystem';
 import { GameStateManager } from '../systems/GameStateManager';
@@ -14,6 +15,7 @@ export class GameScene extends Phaser.Scene {
     private playerController!: PlayerController;
     private enemyManager!: EnemyManager;
     private collectiblesManager!: CollectiblesManager;
+    private airCapsuleManager!: AirCapsuleManager;
     private exitManager!: ExitManager;
     private uiSystem!: UISystem;
     private gameStateManager!: GameStateManager;
@@ -78,6 +80,10 @@ export class GameScene extends Phaser.Scene {
         this.collectiblesManager = new CollectiblesManager(this);
         this.collectiblesManager.createCollectibles(this, this.currentLevel);
         this.uiSystem.updateItemsRemaining(this.collectiblesManager.getRemainingCount());
+        
+        // Create air capsules
+        this.airCapsuleManager = new AirCapsuleManager(this);
+        this.airCapsuleManager.createAirCapsules(this, this.currentLevel);
         
         // Create exit (hidden initially)
         this.exitManager = new ExitManager(this);
@@ -156,6 +162,16 @@ export class GameScene extends Phaser.Scene {
             this.playerController.getSprite(), 
             this.collectiblesManager.getGroup(), 
             this.collectItem as any, 
+            undefined, 
+            this
+        );
+        
+        // Air capsule collisions
+        this.physics.add.collider(this.airCapsuleManager.getGroup(), this.platforms);
+        this.physics.add.overlap(
+            this.playerController.getSprite(), 
+            this.airCapsuleManager.getGroup(), 
+            this.collectAirCapsule as any, 
             undefined, 
             this
         );
@@ -249,6 +265,36 @@ export class GameScene extends Phaser.Scene {
         
         // Coins no longer give air bonus - air only depletes over time
     }
+    
+    private collectAirCapsule(player: any, capsule: any) {
+        capsule.disableBody(true, true);
+        
+        // Play ding sound with higher pitch for air capsule
+        const airSound = this.sound.add('dingSound', { volume: 0.8, rate: 1.5 });
+        airSound.play();
+        
+        // Restore 20 air points
+        const airRestored = 20;
+        this.uiSystem.addAir(airRestored);
+        
+        // Show air restored message
+        const airText = this.add.text(capsule.x, capsule.y - 30, `+${airRestored} AIR`, {
+            fontSize: '20px',
+            color: '#00ffff',
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setOrigin(0.5).setDepth(DEPTHS.UI_TEXT);
+        
+        // Animate the text floating up and fading out
+        this.tweens.add({
+            targets: airText,
+            y: capsule.y - 60,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => airText.destroy()
+        });
+    }
 
     private hitEnemy(player: any, enemy: any) {
         if (!this.gameStateManager.isGameEnded()) {
@@ -290,6 +336,7 @@ export class GameScene extends Phaser.Scene {
         this.enemyManager.stopAllAnimations();
         this.playerController.stopAnimations();
         this.collectiblesManager.stopAllAnimations();
+        this.airCapsuleManager.stopAllAnimations();
         this.exitManager.stopAnimations();
         
         // Stop the level music
@@ -315,6 +362,7 @@ export class GameScene extends Phaser.Scene {
         this.enemyManager.stopAllAnimations();
         this.playerController.stopAnimations();
         this.collectiblesManager.stopAllAnimations();
+        this.airCapsuleManager.stopAllAnimations();
         this.exitManager.stopAnimations();
         
         this.physics.pause();
@@ -346,6 +394,7 @@ export class GameScene extends Phaser.Scene {
         this.enemyManager.stopAllAnimations();
         this.playerController.stopAnimations();
         this.collectiblesManager.stopAllAnimations();
+        this.airCapsuleManager.stopAllAnimations();
         this.exitManager.stopAnimations();
         
         // Stop the level music
@@ -371,6 +420,7 @@ export class GameScene extends Phaser.Scene {
         // Clear game objects
         this.platforms.clear(true, true);
         this.collectiblesManager.getGroup().clear(true, true);
+        this.airCapsuleManager.getGroup().clear(true, true);
         this.enemyManager.getGroup().clear(true, true);
         this.playerController.getSprite().destroy();
         this.exitManager.getSprite()?.destroy();
@@ -419,6 +469,10 @@ export class GameScene extends Phaser.Scene {
         this.collectiblesManager = new CollectiblesManager(this);
         this.collectiblesManager.createCollectibles(this, this.currentLevel);
         this.uiSystem.updateItemsRemaining(this.collectiblesManager.getRemainingCount());
+        
+        // Create air capsules
+        this.airCapsuleManager = new AirCapsuleManager(this);
+        this.airCapsuleManager.createAirCapsules(this, this.currentLevel);
         
         // Create exit (hidden initially)
         this.exitManager = new ExitManager(this);

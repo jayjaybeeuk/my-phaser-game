@@ -2,6 +2,7 @@ export interface LevelConfig {
     name: string;
     platforms: Array<{x: number, y: number, width: number}>;
     collectibles: Array<{x: number, y: number}>;
+    airCapsules?: Array<{x: number, y: number}>; // Optional air capsules for each level
     enemies: Array<{
         x: number, 
         y: number, 
@@ -52,6 +53,10 @@ export class LevelManager {
                 {x: 72, y: 260}, {x: 152, y: 260}, {x: 392, y: 260}, {x: 472, y: 260}, {x: 648, y: 260},
                 {x: 136, y: 340}, {x: 216, y: 340}, {x: 456, y: 340}, {x: 536, y: 340},
                 {x: 232, y: 420}, {x: 312, y: 420}
+            ],
+            airCapsules: [
+                {x: 700, y: 260}, // Top right area - requires navigation to upper platforms
+                {x: 270, y: 420}  // Mid-bottom area - accessible but requires backtracking
             ],
             enemies: [
                 {x: 300, y: 550, type: 'enemy-one', velocity: 80},
@@ -108,6 +113,10 @@ export class LevelManager {
                 {x: 640, y: 480}, {x: 590, y: 400}, {x: 690, y: 320}, {x: 620, y: 240}, {x: 680, y: 160},
                 // Top area coins
                 {x: 250, y: 100}, {x: 320, y: 100}, {x: 550, y: 100}, {x: 650, y: 100}
+            ],
+            airCapsules: [
+                {x: 240, y: 320}, // Left side of staircase - mid-height
+                {x: 650, y: 240}  // Right side upper area - requires difficult navigation
             ],
             enemies: [
                 {x: 350, y: 550, type: 'enemy-one', velocity: -100},
@@ -181,6 +190,10 @@ export class LevelManager {
                 {x: 208, y: 160}, {x: 368, y: 180}, {x: 432, y: 180}, {x: 592, y: 160},
                 // Top level
                 {x: 144, y: 100}, {x: 336, y: 100}, {x: 400, y: 100}, {x: 464, y: 100}, {x: 624, y: 100}
+            ],
+            airCapsules: [
+                {x: 100, y: 400}, // Lower left area - accessible early
+                {x: 550, y: 240}  // Upper right area - requires vertical navigation
             ],
             enemies: [
                 {x: 300, y: 550, type: 'enemy-one', velocity: -100},

@@ -14,6 +14,19 @@ export class AssetManager {
             frameHeight: 14
         });
         
+        // Load the air capsule sprite sheet
+        scene.load.spritesheet('air-capsule', 'assets/air-capsule-sprite.png', {
+            frameWidth: 20,
+            frameHeight: 28
+        });
+        
+        // Add error handling for air capsule loading
+        scene.load.on('filefailed', (key: string) => {
+            if (key === 'air-capsule') {
+                console.warn('Air capsule sprite failed to load - make sure air-capsule-sprite.png is in the assets folder');
+            }
+        });
+        
         // Load the enemy spritesheets
         scene.load.spritesheet('enemy-one', 'assets/enemy-one-sprite.png', {
             frameWidth: 21,
@@ -103,6 +116,14 @@ export class AssetManager {
             key: 'coin-spin',
             frames: scene.anims.generateFrameNumbers('coin', { start: 0, end: 4 }),
             frameRate: 10,
+            repeat: -1
+        });
+        
+        // Air capsule animation
+        scene.anims.create({
+            key: 'air-capsule-float',
+            frames: scene.anims.generateFrameNumbers('air-capsule', { start: 0, end: 3 }),
+            frameRate: 8,
             repeat: -1
         });
         
