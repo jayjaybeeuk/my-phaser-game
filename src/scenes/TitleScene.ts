@@ -16,7 +16,7 @@ export class TitleScene extends Phaser.Scene {
 
     preload() {
         // Load the intro music
-        this.load.audio('introMusic', 'assets/music-intro.wav');
+        this.load.audio('introMusic', 'assets/sound/music-intro.wav');
     }
 
     create() {

@@ -3,19 +3,19 @@ import Phaser from 'phaser';
 export class AssetManager {
     static preloadAssets(scene: Phaser.Scene) {
         // Load the sprite sheet for the main character
-        scene.load.spritesheet('player', 'assets/main-sprite.png', {
+        scene.load.spritesheet('player', 'assets/images/main-sprite.png', {
             frameWidth: 28,
             frameHeight: 43
         });
         
         // Load the animated coin sprite sheet
-        scene.load.spritesheet('coin', 'assets/coin-sprite.png', {
+        scene.load.spritesheet('coin', 'assets/images/coin-sprite.png', {
             frameWidth: 14,
             frameHeight: 14
         });
         
         // Load the air capsule sprite sheet
-        scene.load.spritesheet('air-capsule', 'assets/air-capsule-sprite.png', {
+        scene.load.spritesheet('air-capsule', 'assets/images/air-capsule-sprite.png', {
             frameWidth: 20,
             frameHeight: 28
         });
@@ -28,12 +28,12 @@ export class AssetManager {
         });
         
         // Load the enemy spritesheets
-        scene.load.spritesheet('enemy-one', 'assets/enemy-one-sprite.png', {
+        scene.load.spritesheet('enemy-one', 'assets/images/enemy-one-sprite.png', {
             frameWidth: 21,
             frameHeight: 26
         });
         
-        scene.load.spritesheet('enemy-two', 'assets/enemy-two-sprite.png', {
+        scene.load.spritesheet('enemy-two', 'assets/images/enemy-two-sprite.png', {
             frameWidth: 25,
             frameHeight: 26
         });
@@ -49,9 +49,9 @@ export class AssetManager {
         console.log('Loading sound assets...');
         
         // Load available sound files
-        scene.load.audio('walkSound', 'assets/walk-sound.wav');
-        scene.load.audio('jumpSound', 'assets/jump-sound.wav');
-        scene.load.audio('dingSound', 'assets/ding-sound.wav');
+        scene.load.audio('walkSound', 'assets/sound/walk-sound.wav');
+        scene.load.audio('jumpSound', 'assets/sound/jump-sound.wav');
+        scene.load.audio('dingSound', 'assets/sound/ding-sound.wav');
         
         // Add comprehensive error handling
         scene.load.on('filefailed', (key: string, type: string, url: string) => {

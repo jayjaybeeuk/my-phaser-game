@@ -41,7 +41,7 @@ export class GameScene extends Phaser.Scene {
         AssetManager.preloadAssets(this);
         
         // Load level music
-        this.load.audio('levelMusic', 'assets/music-level.wav');
+        this.load.audio('levelMusic', 'assets/sound/music-level.wav');
     }
 
     create() {
