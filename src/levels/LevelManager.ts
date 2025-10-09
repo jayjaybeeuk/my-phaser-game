@@ -27,7 +27,7 @@ export class LevelManager {
                 {x: 0, y: 584, width: 800},
                 
                 // Top platform
-                {x: 64, y: 120, width: 256},
+                {x: 64, y: 120, width: 206},
                 {x: 360, y: 120, width: 376},
                 
                 // Second level platforms
