@@ -11,22 +11,23 @@ export class UISystem {
     private airRemaining: number = 100;
 
     constructor(scene: Phaser.Scene, levelName: string) {
+
+        this.levelText = scene.add.text(16, 36, levelName, { 
+            fontSize: '20px', 
+            color: '#ffff00' 
+        }).setDepth(DEPTHS.UI_TEXT);
+
         this.scoreText = scene.add.text(16, 16, 'Score: 0', { 
-            fontSize: '32px', 
+            fontSize: '20px', 
             color: '#ffffff' 
         }).setDepth(DEPTHS.UI_TEXT);
         
-        this.levelText = scene.add.text(16, 56, levelName, { 
-            fontSize: '24px', 
-            color: '#ffff00' 
-        }).setDepth(DEPTHS.UI_TEXT);
-        
-        this.itemsText = scene.add.text(16, 96, 'Items: 0', {
+        this.itemsText = scene.add.text(180, 16, 'Items: 0', {
             fontSize: '20px',
             color: '#00ff00'
         }).setDepth(DEPTHS.UI_TEXT);
-        
-        this.livesText = scene.add.text(16, 126, 'Lives: 3', {
+
+        this.livesText = scene.add.text(340, 16, 'Lives: 3', {
             fontSize: '20px',
             color: '#ff00ff'
         }).setDepth(DEPTHS.UI_TEXT);
