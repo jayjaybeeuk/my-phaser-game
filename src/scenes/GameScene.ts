@@ -522,6 +522,11 @@ export class GameScene extends Phaser.Scene {
             this.cameras.main.setBackgroundColor('#000000'); // Default black
         }
         
+        // Restart the level music (if enabled)
+        if (MusicManager.isMusicEnabled() && this.levelMusic) {
+            this.levelMusic.play();
+        }
+        
         // Preserve score from previous level
         const currentScore = this.uiSystem ? this.uiSystem.getScore() : 0;
         
