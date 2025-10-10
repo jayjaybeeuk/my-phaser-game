@@ -99,6 +99,20 @@ export class UISystem {
         this.airBar.fillRect(600, 16, this.airRemaining * 2, 20);
         this.airBar.lineStyle(2, 0xffffff);
         this.airBar.strokeRect(600, 16, 200, 20);
+
+        // Draw 4 white lines to divide the bar into 5 equal sections
+        const barX = 600;
+        const barY = 16;
+        const barWidth = 200;
+        const barHeight = 20;
+        for (let i = 1; i < 5; i++) {
+            const x = barX + (barWidth / 5) * i;
+            this.airBar.lineStyle(1, 0xffffff, 2);
+            this.airBar.beginPath();
+            this.airBar.moveTo(x, barY);
+            this.airBar.lineTo(x, barY + barHeight);
+            this.airBar.strokePath();
+        }
     }
 
     showGameOver(scene: Phaser.Scene, reason: string, hasLivesRemaining: boolean): void {
