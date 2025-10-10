@@ -17,6 +17,12 @@ export class TitleScene extends Phaser.Scene {
     preload() {
         // Load the intro music
         this.load.audio('introMusic', 'assets/sound/music-intro.wav');
+        
+        // Load the player sprite sheet for animation
+        this.load.spritesheet('player', 'assets/images/main-sprite.png', {
+            frameWidth: 28,
+            frameHeight: 43
+        });
     }
 
     create() {
@@ -36,17 +42,36 @@ export class TitleScene extends Phaser.Scene {
             this.music.play();
         }
 
+        // Create player animations
+        if (!this.anims.exists('walk')) {
+            this.anims.create({
+                key: 'walk',
+                frames: this.anims.generateFrameNumbers('player', { start: 1, end: 3 }),
+                frameRate: 8,
+                repeat: -1
+            });
+        }
+        
+        // Add animated player sprite below the title (created first so it renders behind text)
+        const playerSprite = this.add.sprite(400, 190, 'player');
+        playerSprite.setScale(5); // Make it bigger for visibility
+        playerSprite.play('walk');
+        
         // Game title
         this.add.text(400, 150, 'MANIACAL MINER', {
             fontSize: '64px',
             color: '#ffff00',
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 6
         }).setOrigin(0.5);
 
         // Subtitle
         this.add.text(400, 220, 'A Classic Platform Adventure', {
             fontSize: '24px',
-            color: '#ffffff'
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 6
         }).setOrigin(0.5);
 
         // Instructions
