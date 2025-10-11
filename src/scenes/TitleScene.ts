@@ -38,9 +38,19 @@ export class TitleScene extends Phaser.Scene {
             loop: true
         });
         
+        // Explicitly set loop to true (helps with some audio formats)
+        this.music.setLoop(true);
+        
         if (MusicManager.isMusicEnabled()) {
             this.music.play();
         }
+        
+        // Add a complete event listener as a backup to ensure looping
+        this.music.once('complete', () => {
+            if (MusicManager.isMusicEnabled() && this.scene.isActive('TitleScene')) {
+                this.music.play();
+            }
+        });
 
         // Create player animations
         if (!this.anims.exists('walk')) {
