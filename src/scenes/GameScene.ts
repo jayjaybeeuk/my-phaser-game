@@ -23,6 +23,7 @@ export class GameScene extends Phaser.Scene {
     private gameTimer!: Phaser.Time.TimerEvent;
     private restartKey!: Phaser.Input.Keyboard.Key;
     private dingSound!: Phaser.Sound.BaseSound;
+    private dieSound!: Phaser.Sound.BaseSound;
     private levelMusic!: Phaser.Sound.BaseSound;
     private currentLevel = LevelManager.getCentralCavernLevel();
     private currentLevelIndex = 0;
@@ -72,6 +73,9 @@ export class GameScene extends Phaser.Scene {
         
         // Create coin collection sound
         this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
+        
+        // Create death sound
+        this.dieSound = this.sound.add('dieSound', { volume: 0.7 });
         
         // Create platforms
         this.platforms = this.physics.add.staticGroup();
@@ -348,6 +352,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     private gameOver(reason: string) {
+        // Play death sound
+        this.dieSound.play();
+        
         // Lose a life
         const livesRemaining = this.gameStateManager.loseLife();
         this.uiSystem.updateLives(livesRemaining);
@@ -541,6 +548,9 @@ export class GameScene extends Phaser.Scene {
         
         // Create coin collection sound
         this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
+        
+        // Create death sound
+        this.dieSound = this.sound.add('dieSound', { volume: 0.7 });
         
         // Create platforms
         this.platforms = this.physics.add.staticGroup();
