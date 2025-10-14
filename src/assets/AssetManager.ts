@@ -38,6 +38,11 @@ export class AssetManager {
             frameHeight: 26
         });
         
+        scene.load.spritesheet('enemy-three', 'assets/images/enemy-three-sprite.png', {
+            frameWidth: 24,
+            frameHeight: 26
+        });
+        
         // Load sound effects (fallback to generated sounds if files don't exist)
         AssetManager.loadOrCreateSounds(scene);
         
@@ -139,6 +144,13 @@ export class AssetManager {
         scene.anims.create({
             key: 'enemy-two-walk',
             frames: scene.anims.generateFrameNumbers('enemy-two', { start: 0, end: 5 }),
+            frameRate: 8,
+            repeat: -1
+        });
+        
+        scene.anims.create({
+            key: 'enemy-three-walk',
+            frames: scene.anims.generateFrameNumbers('enemy-three', { start: 0, end: 5 }),
             frameRate: 8,
             repeat: -1
         });
