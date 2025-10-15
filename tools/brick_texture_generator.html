@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>16x16 Brick Texture</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #2a2a2a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        h1 {
+            margin-top: 0;
+            color: #ff6b6b;
+            text-align: center;
+        }
+        .preview-section {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .preview-box {
+            text-align: center;
+        }
+        .preview-box h3 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+        canvas {
+            border: 2px solid #4ecdc4;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            background: #fff;
+        }
+        .pattern-canvas {
+            background: repeating-conic-gradient(#808080 0% 25%, #666 0% 50%) 50% / 20px 20px;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        label {
+            min-width: 120px;
+            color: #a8dadc;
+        }
+        input[type="color"] {
+            width: 60px;
+            height: 35px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button {
+            background: #4ecdc4;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+        button:hover {
+            background: #45b7aa;
+        }
+        .info {
+            background: #2d4654;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .info code {
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧱 16x16 Brick Texture Generator</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Brick Color:</label>
+                <input type="color" id="brickColor" value="#cc6633">
+            </div>
+            <div class="control-group">
+                <label>Mortar Color:</label>
+                <input type="color" id="mortarColor" value="#996633">
+            </div>
+            <div class="control-group">
+                <label>Highlight Color:</label>
+                <input type="color" id="highlightColor" value="#dd8855">
+            </div>
+            <button onclick="updateBrick()">Update Colors</button>
+        </div>
+
+        <div class="preview-section">
+            <div class="preview-box">
+                <h3>Actual Size (16x16)</h3>
+                <canvas id="brickCanvas" width="16" height="16"></canvas>
+            </div>
+            <div class="preview-box">
+                <h3>Preview (320x320)</h3>
+                <canvas id="previewCanvas" width="320" height="320"></canvas>
+            </div>
+            <div class="preview-box">
+                <h3>Tiled Pattern</h3>
+                <canvas id="patternCanvas" class="pattern-canvas" width="320" height="320"></canvas>
+            </div>
+        </div>
+
+        <button onclick="downloadBrick()">💾 Download brick.png</button>
+
+        <div class="info">
+            <strong>Instructions:</strong><br>
+            1. Adjust colors to match your game's aesthetic<br>
+            2. Click "Download brick.png" to save<br>
+            3. Place the file in: <code>assets/images/brick.png</code><br>
+            4. The brick is designed to tile seamlessly side-by-side
+        </div>
+    </div>
+
+    <script>
+        function drawBrick(ctx, brickColor, mortarColor, highlightColor) {
+            // Clear canvas
+            ctx.clearRect(0, 0, 16, 16);
+            
+            // Fill base brick color
+            ctx.fillStyle = brickColor;
+            ctx.fillRect(0, 0, 16, 16);
+            
+            // Add highlight on top-left for depth
+            ctx.fillStyle = highlightColor;
+            ctx.fillRect(1, 1, 2, 2);
+            ctx.fillRect(4, 1, 3, 1);
+            ctx.fillRect(1, 4, 1, 2);
+            
+            // Add some texture
+            ctx.fillRect(10, 8, 2, 2);
+            ctx.fillRect(12, 5, 1, 1);
+            
+            // Draw mortar lines (borders)
+            ctx.fillStyle = mortarColor;
+            
+            // Top border
+            ctx.fillRect(0, 0, 16, 1);
+            // Left border
+            ctx.fillRect(0, 0, 1, 16);
+            // Bottom border (slightly thicker for depth)
+            ctx.fillRect(0, 15, 16, 1);
+            // Right border
+            ctx.fillRect(15, 0, 1, 16);
+        }
+
+        function updateBrick() {
+            const brickColor = document.getElementById('brickColor').value;
+            const mortarColor = document.getElementById('mortarColor').value;
+            const highlightColor = document.getElementById('highlightColor').value;
+            
+            // Draw on actual size canvas
+            const canvas = document.getElementById('brickCanvas');
+            const ctx = canvas.getContext('2d');
+            drawBrick(ctx, brickColor, mortarColor, highlightColor);
+            
+            // Draw scaled preview
+            const previewCanvas = document.getElementById('previewCanvas');
+            const previewCtx = previewCanvas.getContext('2d');
+            previewCtx.imageSmoothingEnabled = false;
+            previewCtx.clearRect(0, 0, 320, 320);
+            previewCtx.drawImage(canvas, 0, 0, 320, 320);
+            
+            // Draw tiled pattern
+            const patternCanvas = document.getElementById('patternCanvas');
+            const patternCtx = patternCanvas.getContext('2d');
+            patternCtx.imageSmoothingEnabled = false;
+            patternCtx.clearRect(0, 0, 320, 320);
+            
+            // Tile the brick 20 times horizontally and vertically
+            for (let y = 0; y < 320; y += 16) {
+                for (let x = 0; x < 320; x += 16) {
+                    patternCtx.drawImage(canvas, x, y);
+                }
+            }
+        }
+
+        function downloadBrick() {
+            const canvas = document.getElementById('brickCanvas');
+            const link = document.createElement('a');
+            link.download = 'brick.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Initialize with default colors
+        updateBrick();
+    </script>
+</body>
+</html>

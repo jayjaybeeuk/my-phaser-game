@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 
 export class AssetManager {
     static preloadAssets(scene: Phaser.Scene) {
+        // Load platform assets
+        scene.load.image('brick', 'assets/images/brick.png');
+
         // Load the sprite sheet for the main character
         scene.load.spritesheet('player', 'assets/images/main-sprite.png', {
             frameWidth: 28,
@@ -154,5 +157,7 @@ export class AssetManager {
             frameRate: 8,
             repeat: -1
         });
+
+        
     }
 }

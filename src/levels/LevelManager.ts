@@ -207,10 +207,13 @@ export class LevelManager {
     }
 
     static createPlatforms(scene: Phaser.Scene, platforms: Phaser.Physics.Arcade.StaticGroup, levelConfig: LevelConfig) {
-        const platformTint = levelConfig.platformTint || 0xff0000; // Default to red if not specified
+        const platformTint = levelConfig.platformTint || 0xffffff;
         levelConfig.platforms.forEach(platform => {
-            for (let x = platform.x; x < platform.x + platform.width; x += 32) {
-                platforms.create(x + 16, platform.y, 'platform').setTint(platformTint);
+            for (let x = platform.x; x < platform.x + platform.width; x += 16) {
+                const brick = platforms.create(x + 8, platform.y, 'brick');
+                if (levelConfig.platformTint) {
+                    brick.setTint(platformTint);
+                }
             }
         });
     }
