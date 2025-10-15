@@ -28,6 +28,7 @@ export class GameScene extends Phaser.Scene {
     private currentLevel = LevelManager.getCentralCavernLevel();
     private currentLevelIndex = 0;
     private canPressKey: boolean = true;
+    private isTransitioningLevel: boolean = false;
     private levels = [
         LevelManager.getCentralCavernLevel(),
         LevelManager.getUndergroundChamberLevel(),
@@ -207,6 +208,11 @@ export class GameScene extends Phaser.Scene {
 
     update() {
         if (this.gameStateManager.isGameEnded()) {
+            // Don't allow key presses during level transitions
+            if (this.isTransitioningLevel) {
+                return;
+            }
+            
             // Check for any key press to continue or return to title (with delay to prevent immediate trigger)
             if (this.canPressKey && this.isAnyKeyPressed()) {
                 if (this.gameStateManager.isGameWon()) {
@@ -429,6 +435,9 @@ export class GameScene extends Phaser.Scene {
     }
     
     private showLevelComplete() {
+        // Set flag to prevent key presses during transition
+        this.isTransitioningLevel = true;
+        
         this.uiSystem.showLevelComplete(this);
         
         // Stop all animations
@@ -494,6 +503,9 @@ export class GameScene extends Phaser.Scene {
     }
     
     private loadNextLevel() {
+        // Clear transition flag
+        this.isTransitioningLevel = false;
+        
         // Move to next level
         this.currentLevelIndex++;
         this.currentLevel = this.levels[this.currentLevelIndex];
