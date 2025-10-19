@@ -9,6 +9,7 @@ import { ExitManager } from '../objects/ExitManager';
 import { UISystem } from '../systems/UISystem';
 import { GameStateManager } from '../systems/GameStateManager';
 import { MusicManager } from '../systems/MusicManager';
+import { DebugMenu } from '../systems/DebugMenu';
 import { DEPTHS } from '../constants/depths';
 
 export class GameScene extends Phaser.Scene {
@@ -20,6 +21,7 @@ export class GameScene extends Phaser.Scene {
     private exitManager!: ExitManager;
     private uiSystem!: UISystem;
     private gameStateManager!: GameStateManager;
+    private debugMenu!: DebugMenu;
     private gameTimer!: Phaser.Time.TimerEvent;
     private restartKey!: Phaser.Input.Keyboard.Key;
     private dingSound!: Phaser.Sound.BaseSound;
@@ -120,6 +122,12 @@ export class GameScene extends Phaser.Scene {
         // Add restart key
         this.restartKey = this.input.keyboard!.addKey('R');
         
+        // Initialize debug menu
+        this.debugMenu = new DebugMenu(this, this.currentLevelIndex, this.levels.length);
+        this.debugMenu.setLevelSkipCallback((levelIndex: number) => {
+            this.skipToLevel(levelIndex);
+        });
+        
         // Setup gamepad for restart functionality
         this.setupGamepadInput();
     }
@@ -207,6 +215,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     update() {
+        // Update debug menu
+        this.debugMenu.update();
+        
         if (this.gameStateManager.isGameEnded()) {
             // Don't allow key presses during level transitions
             if (this.isTransitioningLevel) {
@@ -404,6 +415,9 @@ export class GameScene extends Phaser.Scene {
         // Reset game state but keep current level and score
         this.gameStateManager.reset();
         
+        // Update debug menu to reflect current level
+        this.debugMenu.updateCurrentLevel(this.currentLevelIndex);
+        
         // Clean up UI elements and game objects
         this.children.removeAll();
         
@@ -510,6 +524,9 @@ export class GameScene extends Phaser.Scene {
         this.currentLevelIndex++;
         this.currentLevel = this.levels[this.currentLevelIndex];
         
+        // Update debug menu with new level index
+        this.debugMenu.updateCurrentLevel(this.currentLevelIndex);
+        
         // Reset game state
         this.gameStateManager.reset();
         
@@ -528,6 +545,47 @@ export class GameScene extends Phaser.Scene {
         if (this.gameTimer) {
             this.gameTimer.remove();
         }
+        
+        // Create new level
+        this.createLevel();
+    }
+    
+    private skipToLevel(levelIndex: number): void {
+        // Validate level index
+        if (levelIndex < 0 || levelIndex >= this.levels.length) {
+            console.warn(`Invalid level index: ${levelIndex}`);
+            return;
+        }
+        
+        // Set the target level
+        this.currentLevelIndex = levelIndex;
+        this.currentLevel = this.levels[levelIndex];
+        
+        // Reset game state (but preserve score)
+        this.gameStateManager.reset();
+        
+        // Clean up ALL UI elements and game objects
+        this.children.removeAll();
+        
+        // Clear game objects
+        this.platforms.clear(true, true);
+        this.collectiblesManager.getGroup().clear(true, true);
+        this.airCapsuleManager.getGroup().clear(true, true);
+        this.enemyManager.getGroup().clear(true, true);
+        this.playerController.getSprite().destroy();
+        this.exitManager.getSprite()?.destroy();
+        
+        // Remove the timer if it exists
+        if (this.gameTimer) {
+            this.gameTimer.remove();
+        }
+        
+        // Recreate debug menu
+        this.debugMenu.destroy();
+        this.debugMenu = new DebugMenu(this, this.currentLevelIndex, this.levels.length);
+        this.debugMenu.setLevelSkipCallback((levelIndex: number) => {
+            this.skipToLevel(levelIndex);
+        });
         
         // Create new level
         this.createLevel();
