@@ -14,6 +14,7 @@ export interface LevelConfig {
     exit: {x: number, y: number};
     backgroundColor?: number;
     platformTint?: number;
+    brickTexture?: string; // Custom brick texture for platforms
 }
 
 export class LevelManager {
@@ -132,7 +133,7 @@ export class LevelManager {
         return {
             name: 'Arctic Zone',
             backgroundColor: 0x001a4d, // Dark blue background
-            platformTint: 0x4db8ff,    // Light blue platforms
+            brickTexture: 'brick-ice',  // Use ice brick texture
             playerStart: {x: 50, y: 520},
             exit: {x: 400, y: 100}, // Top center - requires navigating the ice platforms
             platforms: [
@@ -207,10 +208,11 @@ export class LevelManager {
     }
 
     static createPlatforms(scene: Phaser.Scene, platforms: Phaser.Physics.Arcade.StaticGroup, levelConfig: LevelConfig) {
+        const brickTexture = levelConfig.brickTexture || 'brick';
         const platformTint = levelConfig.platformTint || 0xffffff;
         levelConfig.platforms.forEach(platform => {
             for (let x = platform.x; x < platform.x + platform.width; x += 16) {
-                const brick = platforms.create(x + 8, platform.y, 'brick');
+                const brick = platforms.create(x + 8, platform.y, brickTexture);
                 if (levelConfig.platformTint) {
                     brick.setTint(platformTint);
                 }

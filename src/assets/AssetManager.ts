@@ -4,6 +4,7 @@ export class AssetManager {
     static preloadAssets(scene: Phaser.Scene) {
         // Load platform assets
         scene.load.image('brick', 'assets/images/brick.png');
+        scene.load.image('brick-ice', 'assets/images/brick-ice.png');
 
         // Load the sprite sheet for the main character
         scene.load.spritesheet('player', 'assets/images/main-sprite.png', {
