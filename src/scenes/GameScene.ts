@@ -466,6 +466,10 @@ export class GameScene extends Phaser.Scene {
             this.levelMusic.stop();
         }
         
+        // Reset to first level for next game
+        this.currentLevelIndex = 0;
+        this.currentLevel = this.levels[0];
+        
         // Return to title scene
         this.scene.start('TitleScene');
     }
