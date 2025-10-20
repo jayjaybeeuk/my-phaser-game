@@ -127,6 +127,9 @@ export class GameScene extends Phaser.Scene {
         this.debugMenu.setLevelSkipCallback((levelIndex: number) => {
             this.skipToLevel(levelIndex);
         });
+        this.debugMenu.setCollisionToggleCallback((enabled: boolean) => {
+            this.handleCollisionToggle(enabled);
+        });
         
         // Setup gamepad for restart functionality
         this.setupGamepadInput();
@@ -288,7 +291,10 @@ export class GameScene extends Phaser.Scene {
         
         // Check if air runs out
         if (this.uiSystem.getAirRemaining() <= 0 && !this.gameStateManager.isGameEnded()) {
-            this.gameOver('Out of Air!');
+            // Only trigger game over if collision is enabled (air counts as collision)
+            if (this.debugMenu.isCollisionEnabled()) {
+                this.gameOver('Out of Air!');
+            }
         }
     }
 
@@ -338,6 +344,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     private hitEnemy(player: any, enemy: any) {
+        // Check if collision is disabled in debug menu
+        if (!this.debugMenu.isCollisionEnabled()) {
+            return; // Skip collision handling
+        }
+        
         if (!this.gameStateManager.isGameEnded()) {
             this.gameOver('Touched Enemy!');
         }
@@ -348,6 +359,13 @@ export class GameScene extends Phaser.Scene {
             // Deplete air twice as fast (2 per second instead of 1)
             this.uiSystem.depleteAir(2);
         }
+    }
+    
+    private handleCollisionToggle(enabled: boolean): void {
+        // When collision is toggled, we don't need to do anything here
+        // The hitEnemy method already checks the debug menu state
+        // Could add visual feedback here if desired
+        console.log(`Collision detection ${enabled ? 'enabled' : 'disabled'}`);
     }
 
     private winLevel() {
@@ -372,9 +390,13 @@ export class GameScene extends Phaser.Scene {
         // Play death sound
         this.dieSound.play();
         
-        // Lose a life
-        const livesRemaining = this.gameStateManager.loseLife();
-        this.uiSystem.updateLives(livesRemaining);
+        // Check if unlimited lives is enabled
+        if (!this.debugMenu.isUnlimitedLivesEnabled()) {
+            // Lose a life normally
+            const livesRemaining = this.gameStateManager.loseLife();
+            this.uiSystem.updateLives(livesRemaining);
+        }
+        // else: unlimited lives - don't lose a life
         
         this.gameStateManager.setGameOver();
         
@@ -585,6 +607,9 @@ export class GameScene extends Phaser.Scene {
         this.debugMenu = new DebugMenu(this, this.currentLevelIndex, this.levels.length);
         this.debugMenu.setLevelSkipCallback((levelIndex: number) => {
             this.skipToLevel(levelIndex);
+        });
+        this.debugMenu.setCollisionToggleCallback((enabled: boolean) => {
+            this.handleCollisionToggle(enabled);
         });
         
         // Create new level
