@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { TitleScene } from './scenes/TitleScene';
 import { GameScene } from './scenes/GameScene';
+import { NameEntryScene } from './scenes/NameEntryScene';
+import { HighScoreScene } from './scenes/HighScoreScene';
 
 // Game configuration
 const config: Phaser.Types.Core.GameConfig = {
@@ -18,7 +20,7 @@ const config: Phaser.Types.Core.GameConfig = {
             debug: false
         }
     },
-    scene: [TitleScene, GameScene]
+    scene: [TitleScene, GameScene, NameEntryScene, HighScoreScene]
 };
 
 // Start the game

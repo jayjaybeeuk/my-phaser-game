@@ -10,6 +10,7 @@ import { UISystem } from '../systems/UISystem';
 import { GameStateManager } from '../systems/GameStateManager';
 import { MusicManager } from '../systems/MusicManager';
 import { DebugMenu } from '../systems/DebugMenu';
+import { HighScoreManager } from '../systems/HighScoreManager';
 import { DEPTHS } from '../constants/depths';
 
 export class GameScene extends Phaser.Scene {
@@ -466,12 +467,19 @@ export class GameScene extends Phaser.Scene {
             this.levelMusic.stop();
         }
         
-        // Reset to first level for next game
-        this.currentLevelIndex = 0;
-        this.currentLevel = this.levels[0];
-        
-        // Return to title scene
-        this.scene.start('TitleScene');
+        // Check if player achieved a high score
+        const finalScore = this.uiSystem.getScore();
+        if (HighScoreManager.isHighScore(finalScore)) {
+            // Go to name entry scene
+            this.scene.start('NameEntryScene', { score: finalScore });
+        } else {
+            // Reset to first level for next game
+            this.currentLevelIndex = 0;
+            this.currentLevel = this.levels[0];
+            
+            // Return to title scene
+            this.scene.start('TitleScene');
+        }
     }
     
     private showLevelComplete() {
