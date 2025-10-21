@@ -6,6 +6,18 @@ export interface HighScoreEntry {
 export class HighScoreManager {
     private static readonly STORAGE_KEY = 'maniacal_miner_high_scores';
     private static readonly MAX_SCORES = 10;
+    private static readonly DEFAULT_SCORES: HighScoreEntry[] = [
+        { name: 'WILY', score: 500 },
+        { name: 'BLOB', score: 450 },
+        { name: 'MICK', score: 400 },
+        { name: 'DAVE', score: 350 },
+        { name: 'JANE', score: 300 },
+        { name: 'ZACK', score: 250 },
+        { name: 'RUBY', score: 200 },
+        { name: 'OTTO', score: 150 },
+        { name: 'FINN', score: 100 },
+        { name: 'ALEX', score: 50 }
+    ];
 
     static saveScore(name: string, score: number): boolean {
         const scores = this.getHighScores();
@@ -37,11 +49,24 @@ export class HighScoreManager {
             const stored = localStorage.getItem(this.STORAGE_KEY);
             if (stored) {
                 return JSON.parse(stored);
+            } else {
+                // No scores exist yet, initialize with defaults
+                this.initializeDefaultScores();
+                return this.DEFAULT_SCORES;
             }
         } catch (e) {
             console.error('Failed to load high scores:', e);
+            return this.DEFAULT_SCORES;
         }
-        return [];
+    }
+
+    private static initializeDefaultScores(): void {
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.DEFAULT_SCORES));
+            console.log('Initialized high scores with default values');
+        } catch (e) {
+            console.error('Failed to initialize default high scores:', e);
+        }
     }
 
     static isHighScore(score: number): boolean {
