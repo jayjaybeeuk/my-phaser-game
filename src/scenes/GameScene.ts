@@ -372,6 +372,17 @@ export class GameScene extends Phaser.Scene {
     private winLevel() {
         this.gameStateManager.setGameWon();
         
+        // Calculate and award life bonus (200 points per remaining life)
+        const livesRemaining = this.gameStateManager.getLives();
+        const lifeBonus = livesRemaining * 200;
+        
+        if (lifeBonus > 0) {
+            const currentScore = this.uiSystem.getScore();
+            this.uiSystem.updateScore(currentScore + lifeBonus);
+            
+            console.log(`Level complete! Lives bonus: ${livesRemaining} x 200 = ${lifeBonus} points`);
+        }
+        
         // Check if there's a next level
         if (this.currentLevelIndex < this.levels.length - 1) {
             // Progress to next level
