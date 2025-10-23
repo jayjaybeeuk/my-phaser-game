@@ -42,6 +42,13 @@ export class GameScene extends Phaser.Scene {
         super({ key: 'GameScene' });
     }
 
+    init() {
+        // Reset level to beginning when scene starts
+        this.currentLevelIndex = 0;
+        this.currentLevel = this.levels[0];
+        console.log('GameScene initialized - starting from level 1');
+    }
+
     preload() {
         AssetManager.preloadAssets(this);
         
