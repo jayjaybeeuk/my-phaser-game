@@ -10,8 +10,15 @@ const config: Phaser.Types.Core.GameConfig = {
     width: 800,
     height: 600,
     backgroundColor: '#000000',
+    scale: {
+        mode: Phaser.Scale.FIT,  // Fits game to screen while maintaining aspect ratio
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        parent: 'game-container',
+        fullscreenTarget: 'game-container'  // Element to go fullscreen
+    },
     input: {
-        gamepad: true  // Enable gamepad support
+        gamepad: true,  // Enable gamepad support
+        touch: true     // Enable touch input
     },
     physics: {
         default: 'arcade',
