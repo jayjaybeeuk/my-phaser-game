@@ -37,12 +37,15 @@
             margin: 10px 0;
             font-size: clamp(16px, 4vw, 32px);
             text-shadow: 2px 2px 4px #000;
+            position: absolute;
+            top: 0;
+            width: 100%;
+            z-index: 100;
         }
 
         #game-container {
             width: 100%;
-            max-width: 800px;
-            height: auto;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -78,6 +81,12 @@
             text-align: center;
             font-size: clamp(8px, 2vw, 12px);
             color: #888;
+            z-index: 100;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
         }
 
         @media (max-width: 768px) {
@@ -100,14 +109,14 @@
     <button id="fullscreen-btn">FULLSCREEN</button>
     <h1>MANIACAL MINER</h1>
     
-    <div id="game-container">
-        <script src="/bundle.js"></script>
-    </div>
+    <div id="game-container"></div>
     
     <div class="credits">
         <p>Recreated with Phaser.js and TypeScript</p>
     </div>
 
+    <script src="./bundle.js"></script>
+    
     <script>
         // Fullscreen toggle button
         document.getElementById('fullscreen-btn').addEventListener('click', function() {

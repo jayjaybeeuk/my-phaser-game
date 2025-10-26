@@ -11,6 +11,7 @@ import { GameStateManager } from '../systems/GameStateManager';
 import { MusicManager } from '../systems/MusicManager';
 import { DebugMenu } from '../systems/DebugMenu';
 import { HighScoreManager } from '../systems/HighScoreManager';
+import { PlatformDetector } from '../utils/PlatformDetector';
 import { DEPTHS } from '../constants/depths';
 
 export class GameScene extends Phaser.Scene {
@@ -83,10 +84,18 @@ export class GameScene extends Phaser.Scene {
         this.uiSystem.updateLives(this.gameStateManager.getLives());
         
         // Create coin collection sound
-        this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
+        if (PlatformDetector.isWeb() && this.cache.audio.exists('dingSound')) {
+            this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
+        } else {
+            this.dingSound = { play: () => {} } as any;
+        }
         
         // Create death sound
-        this.dieSound = this.sound.add('dieSound', { volume: 0.7 });
+        if (PlatformDetector.isWeb() && this.cache.audio.exists('dieSound')) {
+            this.dieSound = this.sound.add('dieSound', { volume: 0.7 });
+        } else {
+            this.dieSound = { play: () => {} } as any;
+        }
         
         // Create platforms
         this.platforms = this.physics.add.staticGroup();
@@ -325,8 +334,10 @@ export class GameScene extends Phaser.Scene {
         capsule.disableBody(true, true);
         
         // Play ding sound with higher pitch for air capsule
-        const airSound = this.sound.add('dingSound', { volume: 0.8, rate: 1.5 });
-        airSound.play();
+        if (PlatformDetector.isWeb() && this.cache.audio.exists('dingSound')) {
+            const airSound = this.sound.add('dingSound', { volume: 0.8, rate: 1.5 });
+            airSound.play();
+        }
         
         // Restore 20 air points
         const airRestored = 20;
@@ -672,10 +683,18 @@ export class GameScene extends Phaser.Scene {
         this.uiSystem.updateLives(this.gameStateManager.getLives());
         
         // Create coin collection sound
-        this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
+        if (PlatformDetector.isWeb() && this.cache.audio.exists('dingSound')) {
+            this.dingSound = this.sound.add('dingSound', { volume: 0.6 });
+        } else {
+            this.dingSound = { play: () => {} } as any;
+        }
         
         // Create death sound
-        this.dieSound = this.sound.add('dieSound', { volume: 0.7 });
+        if (PlatformDetector.isWeb() && this.cache.audio.exists('dieSound')) {
+            this.dieSound = this.sound.add('dieSound', { volume: 0.7 });
+        } else {
+            this.dieSound = { play: () => {} } as any;
+        }
         
         // Create platforms
         this.platforms = this.physics.add.staticGroup();

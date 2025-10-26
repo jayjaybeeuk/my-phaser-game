@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { MusicManager } from '../systems/MusicManager';
 import { HighScoreManager, HighScoreEntry } from '../systems/HighScoreManager';
+import { PlatformDetector } from '../utils/PlatformDetector';
 
 export class TitleScene extends Phaser.Scene {
     private startKey!: Phaser.Input.Keyboard.Key;
@@ -20,14 +21,17 @@ export class TitleScene extends Phaser.Scene {
     }
 
     preload() {
-        // Load the intro music
-        this.load.audio('introMusic', 'assets/sound/music-intro.wav');
         
-        // Load the player sprite sheet for animation
+        // Load the player sprite
         this.load.spritesheet('player', 'assets/images/main-sprite.png', {
             frameWidth: 28,
             frameHeight: 43
         });
+        
+        // Only load audio if NOT in Electron
+        if (PlatformDetector.isWeb()) {
+            this.load.audio('introMusic', 'assets/sound/music-intro.wav');
+        }
     }
 
     create() {
@@ -38,24 +42,26 @@ export class TitleScene extends Phaser.Scene {
         this.canStart = false;
 
         // Start playing the intro music on loop (if enabled)
-        this.music = this.sound.add('introMusic', {
-            volume: 0.5,
-            loop: true
-        });
-        
-        // Explicitly set loop to true (helps with some audio formats)
-        this.music.setLoop(true);
-        
-        if (MusicManager.isMusicEnabled()) {
-            this.music.play();
-        }
-        
-        // Add a complete event listener as a backup to ensure looping
-        this.music.once('complete', () => {
-            if (MusicManager.isMusicEnabled() && this.scene.isActive('TitleScene')) {
+        if (PlatformDetector.isWeb() && this.cache.audio.exists('introMusic')) {
+            this.music = this.sound.add('introMusic', {
+                volume: 0.5,
+                loop: true
+            });
+            
+            if (MusicManager.isMusicEnabled()) {
                 this.music.play();
             }
-        });
+        } else {
+            // Electron - create dummy sound object
+            console.log('Running in Electron - audio disabled');
+            this.music = { 
+                play: () => {}, 
+                stop: () => {}, 
+                setLoop: () => {},
+                isPlaying: false,
+                once: () => {}
+            } as any;
+        }
 
         // Create player animations
         if (!this.anims.exists('walk')) {

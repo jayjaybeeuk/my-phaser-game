@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { PlatformDetector } from '../utils/PlatformDetector';
 
 export class AssetManager {
     static preloadAssets(scene: Phaser.Scene) {
@@ -57,11 +58,19 @@ export class AssetManager {
     static loadOrCreateSounds(scene: Phaser.Scene) {
         console.log('Loading sound assets...');
         
-        // Load available sound files
-        scene.load.audio('walkSound', 'assets/sound/walk-sound.wav');
-        scene.load.audio('jumpSound', 'assets/sound/jump-sound.wav');
-        scene.load.audio('dingSound', 'assets/sound/ding-sound.wav');
-        scene.load.audio('dieSound', 'assets/sound/die-sound.mp3');
+        // Add error handling - continue even if sounds fail to load
+        scene.load.on('loaderror', (file: any) => {
+            console.warn(`Failed to load audio: ${file.key}, continuing without it`);
+        });
+        
+        // Try to load sound files (optional - won't block if missing)
+        if (PlatformDetector.isWeb()) {
+            scene.load.audio('levelMusic', 'assets/sound/music-level.wav');
+            scene.load.audio('walkSound', 'assets/sound/walk-sound.wav');
+            scene.load.audio('jumpSound', 'assets/sound/jump-sound.wav');
+            scene.load.audio('dingSound', 'assets/sound/ding-sound.wav');
+            scene.load.audio('dieSound', 'assets/sound/die-sound.mp3');
+        }
         
         // Add comprehensive error handling
         scene.load.on('filefailed', (key: string, type: string, url: string) => {

@@ -1,2 +1,9 @@
 dist
 node_modules
+release
+*.log
+.DS_Store
+build/*.icns
+build/*.ico
+build/*.png
+!build/README.md

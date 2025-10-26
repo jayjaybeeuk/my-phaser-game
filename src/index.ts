@@ -9,6 +9,7 @@ const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
+    parent: 'game-container',
     backgroundColor: '#000000',
     scale: {
         mode: Phaser.Scale.FIT,  // Fits game to screen while maintaining aspect ratio
@@ -31,4 +32,4 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 // Start the game
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
