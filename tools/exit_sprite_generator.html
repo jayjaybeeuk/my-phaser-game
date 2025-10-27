@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exit Sprite Generator</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            border: 2px solid #0f0;
+            margin: 20px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        #preview {
+            transform: scale(4);
+            transform-origin: top left;
+            margin-bottom: 150px;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #0c0;
+        }
+        .info {
+            text-align: center;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>EXIT SPRITE GENERATOR</h1>
+    <div class="info">
+        <p>Animated exit door sprite (6 frames, 32x32 each)</p>
+        <p>Total size: 192x32 pixels</p>
+    </div>
+    
+    <canvas id="preview"></canvas>
+    <canvas id="spritesheet" width="192" height="32"></canvas>
+    
+    <button onclick="downloadSprite()">DOWNLOAD SPRITE SHEET</button>
+    <button onclick="startAnimation()">PREVIEW ANIMATION</button>
+
+    <script>
+        const canvas = document.getElementById('spritesheet');
+        const ctx = canvas.getContext('2d');
+        const previewCanvas = document.getElementById('preview');
+        const previewCtx = previewCanvas.getContext('2d');
+        
+        previewCanvas.width = 32;
+        previewCanvas.height = 32;
+
+        // Colors
+        const DOOR_DARK = '#28283c';
+        const DOOR_LIGHT = '#3c3c64';
+        const PORTAL_BLUE = '#00c8ff';
+        const PORTAL_PURPLE = '#9600ff';
+        const ENERGY_WHITE = '#ffffff';
+        const FRAME_COLOR = '#505078';
+
+        function drawDoorFrame(ctx, x) {
+            ctx.fillStyle = FRAME_COLOR;
+            // Left frame
+            ctx.fillRect(x + 2, 4, 4, 24);
+            // Right frame
+            ctx.fillRect(x + 26, 4, 4, 24);
+            // Top frame
+            ctx.fillRect(x + 2, 4, 28, 4);
+        }
+
+        function drawClosedDoor(ctx, x) {
+            drawDoorFrame(ctx, x);
+            ctx.fillStyle = DOOR_DARK;
+            // Closed door panels
+            ctx.fillRect(x + 6, 8, 10, 20);
+            ctx.fillRect(x + 16, 8, 10, 20);
+            // Door details
+            ctx.fillStyle = DOOR_LIGHT;
+            ctx.fillRect(x + 7, 10, 8, 6);
+            ctx.fillRect(x + 7, 17, 8, 6);
+            ctx.fillRect(x + 17, 10, 8, 6);
+            ctx.fillRect(x + 17, 17, 8, 6);
+        }
+
+        function drawOpeningDoor1(ctx, x) {
+            drawDoorFrame(ctx, x);
+            ctx.fillStyle = DOOR_DARK;
+            // Doors slightly apart
+            ctx.fillRect(x + 6, 8, 9, 20);
+            ctx.fillRect(x + 17, 8, 9, 20);
+            // Faint glow
+            ctx.fillStyle = PORTAL_BLUE;
+            ctx.fillRect(x + 15, 10, 2, 16);
+        }
+
+        function drawOpeningDoor2(ctx, x) {
+            drawDoorFrame(ctx, x);
+            ctx.fillStyle = DOOR_DARK;
+            // Doors more apart
+            ctx.fillRect(x + 6, 8, 8, 20);
+            ctx.fillRect(x + 18, 8, 8, 20);
+            // Growing energy
+            ctx.fillStyle = PORTAL_BLUE;
+            ctx.fillRect(x + 14, 10, 4, 16);
+            ctx.fillStyle = ENERGY_WHITE;
+            ctx.fillRect(x + 15, 8, 2, 20);
+        }
+
+        function drawOpeningDoor3(ctx, x) {
+            drawDoorFrame(ctx, x);
+            ctx.fillStyle = DOOR_DARK;
+            // Doors wide apart
+            ctx.fillRect(x + 6, 8, 6, 20);
+            ctx.fillRect(x + 20, 8, 6, 20);
+            // Swirling portal
+            ctx.fillStyle = PORTAL_BLUE;
+            ctx.fillRect(x + 12, 8, 8, 20);
+            ctx.fillStyle = PORTAL_PURPLE;
+            ctx.fillRect(x + 13, 10, 6, 16);
+            // Energy lines
+            ctx.fillStyle = ENERGY_WHITE;
+            ctx.fillRect(x + 14, 12, 4, 1);
+            ctx.fillRect(x + 14, 18, 4, 1);
+            ctx.fillRect(x + 14, 24, 4, 1);
+        }
+
+        function drawOpenDoor1(ctx, x) {
+            drawDoorFrame(ctx, x);
+            ctx.fillStyle = DOOR_DARK;
+            // Fully open doors
+            ctx.fillRect(x + 6, 8, 5, 20);
+            ctx.fillRect(x + 21, 8, 5, 20);
+            // Full portal
+            ctx.fillStyle = PORTAL_PURPLE;
+            ctx.fillRect(x + 11, 8, 10, 20);
+            ctx.fillStyle = PORTAL_BLUE;
+            ctx.fillRect(x + 13, 10, 6, 16);
+            // Center glow
+            ctx.fillStyle = ENERGY_WHITE;
+            ctx.beginPath();
+            ctx.ellipse(x + 16, 18, 3, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawOpenDoor2(ctx, x) {
+            drawDoorFrame(ctx, x);
+            ctx.fillStyle = DOOR_DARK;
+            // Fully open doors
+            ctx.fillRect(x + 6, 8, 5, 20);
+            ctx.fillRect(x + 21, 8, 5, 20);
+            // Pulsing portal (colors swapped)
+            ctx.fillStyle = PORTAL_BLUE;
+            ctx.fillRect(x + 11, 8, 10, 20);
+            ctx.fillStyle = PORTAL_PURPLE;
+            ctx.fillRect(x + 13, 10, 6, 16);
+            // Smaller center glow
+            ctx.fillStyle = ENERGY_WHITE;
+            ctx.beginPath();
+            ctx.ellipse(x + 16, 18, 2, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw all frames
+        drawClosedDoor(ctx, 0);
+        drawOpeningDoor1(ctx, 32);
+        drawOpeningDoor2(ctx, 64);
+        drawOpeningDoor3(ctx, 96);
+        drawOpenDoor1(ctx, 128);
+        drawOpenDoor2(ctx, 160);
+
+        function downloadSprite() {
+            const link = document.createElement('a');
+            link.download = 'exit-sprite.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        let currentFrame = 0;
+        let animationInterval = null;
+
+        function startAnimation() {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+            }
+            
+            animationInterval = setInterval(() => {
+                previewCtx.clearRect(0, 0, 32, 32);
+                previewCtx.drawImage(canvas, currentFrame * 32, 0, 32, 32, 0, 0, 32, 32);
+                currentFrame = (currentFrame + 1) % 6;
+            }, 150);
+        }
+
+        // Start animation on load
+        startAnimation();
+    </script>
+</body>
+</html>

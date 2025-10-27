@@ -9,11 +9,15 @@ export class ExitManager {
     constructor(private scene: Phaser.Scene) {}
 
     createExit(levelConfig: LevelConfig): void {
-        // Create the exit as a regular sprite (not physics-enabled) so gravity doesn't affect it
+        // Create the exit as a sprite (not physics-enabled)
         this.exit = this.scene.add.sprite(levelConfig.exit.x, levelConfig.exit.y, 'exit');
         this.exit.setVisible(false);
         this.exit.setActive(false);
         this.exit.setDepth(DEPTHS.COLLECTIBLES);
+        
+        // Set to closed door frame (frame 0)
+        this.exit.setFrame(0);
+        
         this.isVisible = false;
     }
 
@@ -22,15 +26,23 @@ export class ExitManager {
             this.exit.setVisible(true);
             this.exit.setActive(true);
             
-            // Add a pulsing effect to make it more noticeable
-            this.scene.tweens.add({
-                targets: this.exit,
-                scaleX: 1.2,
-                scaleY: 1.2,
-                duration: 500,
-                yoyo: true,
-                repeat: -1,
-                ease: 'Sine.easeInOut'
+            // Play the opening animation
+            this.exit.play('exit-open');
+            
+            // When opening animation completes, start the pulsing animation
+            this.exit.once('animationcomplete', () => {
+                this.exit?.play('exit-pulse');
+                
+                // Add a gentle scale pulsing effect
+                this.scene.tweens.add({
+                    targets: this.exit,
+                    scaleX: 1.1,
+                    scaleY: 1.1,
+                    duration: 1000,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
             });
             
             this.isVisible = true;
@@ -47,6 +59,7 @@ export class ExitManager {
 
     stopAnimations(): void {
         if (this.exit) {
+            this.exit.stop();
             this.scene.tweens.killTweensOf(this.exit);
         }
     }

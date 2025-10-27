@@ -48,6 +48,12 @@ export class AssetManager {
             frameHeight: 26
         });
         
+        // Load the exit sprite sheet
+        scene.load.spritesheet('exit', 'assets/images/exit-sprite.png', {
+            frameWidth: 32,
+            frameHeight: 32
+        });
+        
         // Load sound effects (fallback to generated sounds if files don't exist)
         AssetManager.loadOrCreateSounds(scene);
         
@@ -101,12 +107,7 @@ export class AssetManager {
         enemyGraphics.generateTexture('enemy', 24, 24);
         enemyGraphics.destroy();
         
-        // Create exit texture
-        const exitGraphics = scene.add.graphics();
-        exitGraphics.fillStyle(0x00ffff);
-        exitGraphics.fillRect(0, 0, 32, 32);
-        exitGraphics.generateTexture('exit', 32, 32);
-        exitGraphics.destroy();
+        // Exit texture is now loaded as a sprite sheet, not generated
     }
 
     static createAnimations(scene: Phaser.Scene) {
@@ -166,6 +167,21 @@ export class AssetManager {
             frames: scene.anims.generateFrameNumbers('enemy-three', { start: 0, end: 5 }),
             frameRate: 8,
             repeat: -1
+        });
+        
+        // Exit door animations
+        scene.anims.create({
+            key: 'exit-open',
+            frames: scene.anims.generateFrameNumbers('exit', { start: 0, end: 5 }),
+            frameRate: 10,
+            repeat: 0  // Play once
+        });
+        
+        scene.anims.create({
+            key: 'exit-pulse',
+            frames: scene.anims.generateFrameNumbers('exit', { start: 4, end: 5 }),
+            frameRate: 4,
+            repeat: -1  // Loop between open frames
         });
 
         
