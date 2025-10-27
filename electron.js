@@ -28,7 +28,7 @@ function createWindow() {
         mainWindow.webContents.openDevTools(); // Open dev tools in development
     } else {
         mainWindow.loadFile(path.join(__dirname, 'dist/index.html'));
-        mainWindow.webContents.openDevTools(); // Open dev tools to debug
+        // No dev tools in production
     }
 
     // Show window when ready
