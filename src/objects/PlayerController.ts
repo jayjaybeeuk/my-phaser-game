@@ -9,9 +9,11 @@ export class PlayerController {
     private isWalking: boolean = false;
     private wasOnGround: boolean = true; // Track if player was on ground last frame
     private scene: Phaser.Scene;
+    private platforms?: Phaser.Physics.Arcade.StaticGroup; // Reference to platforms for ice detection
 
-    constructor(scene: Phaser.Scene, x: number, y: number) {
+    constructor(scene: Phaser.Scene, x: number, y: number, platforms?: Phaser.Physics.Arcade.StaticGroup) {
         this.scene = scene;
+        this.platforms = platforms;
         this.player = scene.physics.add.sprite(x, y, 'player');
         this.player.setBounce(0);
         // Don't use setCollideWorldBounds as we want custom wraparound behavior
@@ -196,6 +198,38 @@ export class PlayerController {
         return this.player;
     }
 
+    private isOnIce(): boolean {
+        // Check if player is standing on ice platforms
+        if (!this.platforms || !this.player.body?.touching.down) {
+            return false;
+        }
+        
+        const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
+        const playerBottom = playerBody.bottom;
+        const playerLeft = playerBody.left;
+        const playerRight = playerBody.right;
+        
+        // Check all platform bricks to see if any ice bricks are directly below the player
+        const bricks = this.platforms.getChildren();
+        for (const brick of bricks) {
+            const sprite = brick as Phaser.Physics.Arcade.Sprite;
+            const brickBody = sprite.body as Phaser.Physics.Arcade.StaticBody;
+            
+            // Check if this brick is directly below the player (within a few pixels)
+            if (Math.abs(brickBody.top - playerBottom) < 5) {
+                // Check horizontal overlap
+                if (playerRight > brickBody.left && playerLeft < brickBody.right) {
+                    // Check if this is an ice brick
+                    if (sprite.texture.key === 'brick-ice') {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
     checkVerticalWrap(sceneHeight: number = 600, sceneWidth: number = 800): void {
         // Manual bounds checking for left, right, and top
         const body = this.player.body as Phaser.Physics.Arcade.Body;
@@ -228,6 +262,7 @@ export class PlayerController {
         const wasWalking = this.isWalking;
         this.isWalking = false;
         const isOnGround = this.player.body!.touching.down;
+        const onIce = this.isOnIce();
         
         // Get input from both keyboard and gamepad
         const gamepadInput = this.getGamepadInput();
@@ -235,23 +270,57 @@ export class PlayerController {
         const rightPressed = this.cursors.right.isDown || gamepadInput.right;
         const jumpPressed = this.cursors.up.isDown || gamepadInput.jump;
         
-        // Player movement with animations
+        // Ice physics constants
+        const normalSpeed = 200;
+        const iceAcceleration = 300; // Lower acceleration on ice
+        const iceMaxSpeed = 250; // Slightly higher max speed on ice
+        const iceFriction = 0.92; // Friction coefficient for ice (higher = more slippery)
+        
+        // Player movement with animations and ice physics
         if (leftPressed) {
-            this.player.setVelocityX(-200);
+            if (onIce) {
+                // On ice: apply acceleration instead of instant velocity
+                const currentVelX = this.player.body!.velocity.x;
+                const newVelX = Math.max(currentVelX - iceAcceleration * (1/60), -iceMaxSpeed);
+                this.player.setVelocityX(newVelX);
+            } else {
+                // Normal ground: instant velocity
+                this.player.setVelocityX(-normalSpeed);
+            }
             this.player.setFlipX(true); // Flip sprite to face left
             if (isOnGround) {
                 this.player.anims.play('walk', true);
                 this.isWalking = true;
             }
         } else if (rightPressed) {
-            this.player.setVelocityX(200);
+            if (onIce) {
+                // On ice: apply acceleration instead of instant velocity
+                const currentVelX = this.player.body!.velocity.x;
+                const newVelX = Math.min(currentVelX + iceAcceleration * (1/60), iceMaxSpeed);
+                this.player.setVelocityX(newVelX);
+            } else {
+                // Normal ground: instant velocity
+                this.player.setVelocityX(normalSpeed);
+            }
             this.player.setFlipX(false); // Face right (normal)
             if (isOnGround) {
                 this.player.anims.play('walk', true);
                 this.isWalking = true;
             }
         } else {
-            this.player.setVelocityX(0);
+            if (onIce) {
+                // On ice: apply friction for gradual slowdown (sliding effect)
+                const currentVelX = this.player.body!.velocity.x;
+                this.player.setVelocityX(currentVelX * iceFriction);
+                
+                // Stop completely if velocity is very small
+                if (Math.abs(currentVelX) < 5) {
+                    this.player.setVelocityX(0);
+                }
+            } else {
+                // Normal ground: instant stop
+                this.player.setVelocityX(0);
+            }
             if (isOnGround) {
                 this.player.anims.play('idle', true);
             }

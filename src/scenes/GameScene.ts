@@ -101,11 +101,12 @@ export class GameScene extends Phaser.Scene {
         this.platforms = this.physics.add.staticGroup();
         LevelManager.createPlatforms(this, this.platforms, this.currentLevel);
         
-        // Create player
+        // Create player with reference to platforms for ice detection
         this.playerController = new PlayerController(
             this, 
             this.currentLevel.playerStart.x, 
-            this.currentLevel.playerStart.y
+            this.currentLevel.playerStart.y,
+            this.platforms
         );
         
         // Create collectibles
@@ -700,11 +701,12 @@ export class GameScene extends Phaser.Scene {
         this.platforms = this.physics.add.staticGroup();
         LevelManager.createPlatforms(this, this.platforms, this.currentLevel);
         
-        // Create player
+        // Create player with reference to platforms for ice detection
         this.playerController = new PlayerController(
             this, 
             this.currentLevel.playerStart.x, 
-            this.currentLevel.playerStart.y
+            this.currentLevel.playerStart.y,
+            this.platforms
         );
         
         // Create collectibles
