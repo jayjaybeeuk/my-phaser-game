@@ -6,7 +6,7 @@ export interface LevelConfig {
     enemies: Array<{
         x: number, 
         y: number, 
-        type: 'enemy-one' | 'enemy-two' | 'enemy-three' | 'basic',
+        type: 'enemy-one' | 'enemy-two' | 'enemy-three' | 'enemy-four' | 'basic',
         velocity: number,
         tint?: number
     }>;
@@ -63,7 +63,7 @@ export class LevelManager {
                 {x: 300, y: 550, type: 'enemy-one', velocity: 80},
                 {x: 500, y: 260, type: 'enemy-two', velocity: -75},
                 {x: 150, y: 340, type: 'enemy-three', velocity: 60},
-                {x: 400, y: 420, type: 'basic', velocity: -80, tint: 0xff4080}
+                {x: 400, y: 420, type: 'enemy-four', velocity: -80}
             ]
         };
     }
@@ -123,8 +123,8 @@ export class LevelManager {
                 {x: 350, y: 550, type: 'enemy-one', velocity: -100},
                 {x: 450, y: 230, type: 'enemy-two', velocity: 90},
                 {x: 80, y: 320, type: 'enemy-three', velocity: 70},
-                {x: 620, y: 400, type: 'basic', velocity: -85, tint: 0x00ff80}, // Green enemy
-                {x: 280, y: 100, type: 'basic', velocity: 60, tint: 0x8080ff}  // Light blue enemy
+                {x: 620, y: 400, type: 'enemy-four', velocity: -85},
+                {x: 280, y: 100, type: 'enemy-four', velocity: 60}
             ]
         };
     }
@@ -200,9 +200,9 @@ export class LevelManager {
                 {x: 300, y: 550, type: 'enemy-one', velocity: -100},
                 {x: 480, y: 400, type: 'enemy-two', velocity: 90},
                 {x: 200, y: 320, type: 'enemy-three', velocity: 70},
-                {x: 500, y: 240, type: 'basic', velocity: -85, tint: 0x0080ff}, // Ice blue enemy
-                {x: 370, y: 180, type: 'basic', velocity: 60, tint: 0x80c0ff}, // Light ice blue enemy
-                {x: 650, y: 340, type: 'basic', velocity: -75, tint: 0x00ffff}  // Cyan enemy
+                {x: 500, y: 240, type: 'enemy-four', velocity: -85},
+                {x: 370, y: 180, type: 'enemy-four', velocity: 60},
+                {x: 650, y: 340, type: 'enemy-four', velocity: -75}
             ]
         };
     }

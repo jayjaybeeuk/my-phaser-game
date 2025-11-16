@@ -48,6 +48,11 @@ export class AssetManager {
             frameHeight: 26
         });
         
+        scene.load.spritesheet('enemy-four', 'assets/images/enemy-four-sprite.png', {
+            frameWidth: 24,
+            frameHeight: 26
+        });
+        
         // Load the exit sprite sheet
         scene.load.spritesheet('exit', 'assets/images/exit-sprite.png', {
             frameWidth: 32,
@@ -165,6 +170,13 @@ export class AssetManager {
         scene.anims.create({
             key: 'enemy-three-walk',
             frames: scene.anims.generateFrameNumbers('enemy-three', { start: 0, end: 5 }),
+            frameRate: 8,
+            repeat: -1
+        });
+        
+        scene.anims.create({
+            key: 'enemy-four-walk',
+            frames: scene.anims.generateFrameNumbers('enemy-four', { start: 0, end: 5 }),
             frameRate: 8,
             repeat: -1
         });

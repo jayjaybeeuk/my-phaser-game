@@ -28,6 +28,10 @@ export class EnemyManager {
                 enemy = this.enemies.create(enemyConfig.x, enemyConfig.y, 'enemy-three');
                 enemy.anims.play('enemy-three-walk');
                 enemy.setFlipX(enemyConfig.velocity < 0);
+            } else if (enemyConfig.type === 'enemy-four') {
+                enemy = this.enemies.create(enemyConfig.x, enemyConfig.y, 'enemy-four');
+                enemy.anims.play('enemy-four-walk');
+                enemy.setFlipX(enemyConfig.velocity < 0);
             } else {
                 enemy = this.enemies.create(enemyConfig.x, enemyConfig.y, 'enemy');
                 if (enemyConfig.tint) {
@@ -49,7 +53,7 @@ export class EnemyManager {
             }
             
             // Set sprite direction for animated enemies based on current velocity
-            if (enemy.texture.key === 'enemy-one' || enemy.texture.key === 'enemy-two' || enemy.texture.key === 'enemy-three') {
+            if (enemy.texture.key === 'enemy-one' || enemy.texture.key === 'enemy-two' || enemy.texture.key === 'enemy-three' || enemy.texture.key === 'enemy-four') {
                 enemy.setFlipX(enemy.body.velocity.x < 0); // Flip when going left
             }
         });
