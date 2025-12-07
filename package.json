@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "A recreation of the classic Manic Miner game using Phaser.js",
   "main": "electron.js",
+  "engines": {
+    "node": "24.11.1"
+  },
   "scripts": {
     "build": "webpack --mode production",
     "start": "webpack serve --mode development",
@@ -17,7 +20,12 @@
     "electron:build:all": "npm run build && electron-builder -mwl",
     "pack": "npm run build && electron-builder --dir"
   },
-  "keywords": ["game", "phaser", "manic-miner", "platformer"],
+  "keywords": [
+    "game",
+    "phaser",
+    "manic-miner",
+    "platformer"
+  ],
   "author": "James Bolton",
   "license": "MIT",
   "dependencies": {
@@ -50,11 +58,17 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "build/icon.icns"
@@ -63,11 +77,15 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build/icon.ico"
