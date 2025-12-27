@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { BiomeManager } from '../systems/BiomeManager';
 
 export class PlayerController {
     private player: Phaser.Physics.Arcade.Sprite;
@@ -198,10 +199,13 @@ export class PlayerController {
         return this.player;
     }
 
-    private isOnIce(): boolean {
-        // Check if player is standing on ice platforms
+    /**
+     * Check if player is on a slippery surface and get friction value
+     * Returns friction multiplier (1.0 = normal, lower = more slippery)
+     */
+    private getSurfaceFriction(): number {
         if (!this.platforms || !this.player.body?.touching.down) {
-            return false;
+            return 1.0; // Normal friction when not on ground
         }
         
         const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
@@ -209,7 +213,7 @@ export class PlayerController {
         const playerLeft = playerBody.left;
         const playerRight = playerBody.right;
         
-        // Check all platform bricks to see if any ice bricks are directly below the player
+        // Check all platform bricks to find the one directly below the player
         const bricks = this.platforms.getChildren();
         for (const brick of bricks) {
             const sprite = brick as Phaser.Physics.Arcade.Sprite;
@@ -219,15 +223,20 @@ export class PlayerController {
             if (Math.abs(brickBody.top - playerBottom) < 5) {
                 // Check horizontal overlap
                 if (playerRight > brickBody.left && playerLeft < brickBody.right) {
-                    // Check if this is an ice brick
-                    if (sprite.texture.key === 'brick-ice') {
-                        return true;
-                    }
+                    // Get friction from BiomeManager based on texture
+                    return BiomeManager.getFrictionForTexture(sprite.texture.key);
                 }
             }
         }
         
-        return false;
+        return 1.0; // Default friction
+    }
+    
+    /**
+     * Legacy method - check if on ice (friction < 0.5)
+     */
+    private isOnIce(): boolean {
+        return this.getSurfaceFriction() < 0.5;
     }
 
     checkVerticalWrap(sceneHeight: number = 600, sceneWidth: number = 800): void {

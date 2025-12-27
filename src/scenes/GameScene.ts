@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { AssetManager } from '../assets/AssetManager';
 import { LevelManager } from '../levels/LevelManager';
+import { BiomeManager } from '../systems/BiomeManager';
 import { PlayerController } from '../objects/PlayerController';
 import { EnemyManager } from '../objects/EnemyManager';
 import { CollectiblesManager } from '../objects/CollectiblesManager';
@@ -58,10 +59,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     create() {
-        // Set level-specific background color
-        if (this.currentLevel.backgroundColor !== undefined) {
-            this.cameras.main.setBackgroundColor(this.currentLevel.backgroundColor);
-        }
+        // Apply biome effects (background, particles, fog, etc.)
+        LevelManager.applyBiomeToScene(this, this.currentLevel);
         
         // Create animations
         AssetManager.createAnimations(this);
@@ -659,12 +658,9 @@ export class GameScene extends Phaser.Scene {
     }
     
     private createLevel() {
-        // Set level-specific background color
-        if (this.currentLevel.backgroundColor !== undefined) {
-            this.cameras.main.setBackgroundColor(this.currentLevel.backgroundColor);
-        } else {
-            this.cameras.main.setBackgroundColor('#000000'); // Default black
-        }
+        // Clean up previous biome effects and apply new ones
+        LevelManager.cleanupBiome();
+        LevelManager.applyBiomeToScene(this, this.currentLevel);
         
         // Restart the level music (if enabled)
         if (MusicManager.isMusicEnabled() && this.levelMusic) {

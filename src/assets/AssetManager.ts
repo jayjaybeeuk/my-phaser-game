@@ -76,11 +76,21 @@ export class AssetManager {
         
         // Try to load sound files (optional - won't block if missing)
         if (PlatformDetector.isWeb()) {
+            // Game sound effects
             scene.load.audio('levelMusic', 'assets/sound/music-level.wav');
             scene.load.audio('walkSound', 'assets/sound/walk-sound.wav');
             scene.load.audio('jumpSound', 'assets/sound/jump-sound.wav');
             scene.load.audio('dingSound', 'assets/sound/ding-sound.wav');
             scene.load.audio('dieSound', 'assets/sound/die-sound.mp3');
+            
+            // Biome ambient sounds (optional - biomes work without them)
+            scene.load.audio('cavern-ambient', 'assets/sound/ambient-cavern.mp3');
+            scene.load.audio('drip-ambient', 'assets/sound/ambient-drip.mp3');
+            scene.load.audio('wind-ambient', 'assets/sound/ambient-wind.mp3');
+            scene.load.audio('lava-ambient', 'assets/sound/ambient-lava.mp3');
+            scene.load.audio('forest-ambient', 'assets/sound/ambient-forest.mp3');
+            scene.load.audio('crystal-ambient', 'assets/sound/ambient-crystal.mp3');
+            scene.load.audio('toxic-ambient', 'assets/sound/ambient-toxic.mp3');
         }
         
         // Add comprehensive error handling

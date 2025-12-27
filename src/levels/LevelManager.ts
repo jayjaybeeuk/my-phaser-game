@@ -1,5 +1,9 @@
+import { BiomeType, BiomeManager, BiomeConfig } from '../systems/BiomeManager';
+
 export interface LevelConfig {
     name: string;
+    /** Biome type for this level - determines visuals and physics */
+    biome?: BiomeType;
     platforms: Array<{x: number, y: number, width: number}>;
     collectibles: Array<{x: number, y: number}>;
     airCapsules?: Array<{x: number, y: number}>; // Optional air capsules for each level
@@ -12,15 +16,60 @@ export interface LevelConfig {
     }>;
     playerStart: {x: number, y: number};
     exit: {x: number, y: number};
+    /** @deprecated Use biome instead - kept for backwards compatibility */
     backgroundColor?: number;
+    /** @deprecated Use biome instead - kept for backwards compatibility */
     platformTint?: number;
-    brickTexture?: string; // Custom brick texture for platforms
+    /** @deprecated Use biome instead - kept for backwards compatibility */
+    brickTexture?: string;
 }
 
 export class LevelManager {
+    /**
+     * Get the effective biome config for a level
+     * Uses the level's biome if specified, otherwise creates config from legacy properties
+     */
+    static getBiomeForLevel(levelConfig: LevelConfig): BiomeConfig {
+        if (levelConfig.biome) {
+            return BiomeManager.getBiome(levelConfig.biome);
+        }
+        
+        // Fallback for legacy levels without biome - use CAVERN as default
+        return BiomeManager.getBiome(BiomeType.CAVERN);
+    }
+    
+    /**
+     * Get the brick texture for a level (considers biome first, then legacy properties)
+     */
+    static getBrickTexture(levelConfig: LevelConfig): string {
+        if (levelConfig.brickTexture) {
+            return levelConfig.brickTexture;
+        }
+        if (levelConfig.biome) {
+            const biome = BiomeManager.getBiome(levelConfig.biome);
+            return biome.visuals.brickTexture;
+        }
+        return 'brick';
+    }
+    
+    /**
+     * Get the background color for a level (considers biome first, then legacy properties)
+     */
+    static getBackgroundColor(levelConfig: LevelConfig): number {
+        if (levelConfig.backgroundColor !== undefined) {
+            return levelConfig.backgroundColor;
+        }
+        if (levelConfig.biome) {
+            const biome = BiomeManager.getBiome(levelConfig.biome);
+            return biome.visuals.backgroundColor;
+        }
+        return 0x000000;
+    }
+    
     static getCentralCavernLevel(): LevelConfig {
         return {
             name: 'Central Cavern',
+            biome: BiomeType.CAVERN,
             playerStart: {x: 100, y: 450},
             exit: {x: 400, y: 250}, // Center of the screen, middle level
             platforms: [
@@ -71,6 +120,7 @@ export class LevelManager {
     static getUndergroundChamberLevel(): LevelConfig {
         return {
             name: 'Underground Chamber',
+            biome: BiomeType.UNDERGROUND,
             playerStart: {x: 50, y: 520},
             exit: {x: 720, y: 100}, // Top right corner - harder to reach
             platforms: [
@@ -132,8 +182,7 @@ export class LevelManager {
     static getArcticZoneLevel(): LevelConfig {
         return {
             name: 'Arctic Zone',
-            backgroundColor: 0x001a4d, // Dark blue background
-            brickTexture: 'brick-ice',  // Use ice brick texture
+            biome: BiomeType.ARCTIC,
             playerStart: {x: 50, y: 520},
             exit: {x: 400, y: 100}, // Top center - requires navigating the ice platforms
             platforms: [
@@ -208,15 +257,37 @@ export class LevelManager {
     }
 
     static createPlatforms(scene: Phaser.Scene, platforms: Phaser.Physics.Arcade.StaticGroup, levelConfig: LevelConfig) {
-        const brickTexture = levelConfig.brickTexture || 'brick';
-        const platformTint = levelConfig.platformTint || 0xffffff;
+        const brickTexture = this.getBrickTexture(levelConfig);
+        const biome = levelConfig.biome ? BiomeManager.getBiome(levelConfig.biome) : null;
+        const platformTint = levelConfig.platformTint || biome?.visuals.platformTint;
+        
         levelConfig.platforms.forEach(platform => {
             for (let x = platform.x; x < platform.x + platform.width; x += 16) {
                 const brick = platforms.create(x + 8, platform.y, brickTexture);
-                if (levelConfig.platformTint) {
+                if (platformTint) {
                     brick.setTint(platformTint);
                 }
             }
         });
+    }
+    
+    /**
+     * Apply biome effects to a scene
+     */
+    static applyBiomeToScene(scene: Phaser.Scene, levelConfig: LevelConfig): void {
+        if (levelConfig.biome) {
+            BiomeManager.applyBiome(scene, levelConfig.biome);
+        } else {
+            // Legacy support - just set background color
+            const bgColor = levelConfig.backgroundColor ?? 0x000000;
+            scene.cameras.main.setBackgroundColor(bgColor);
+        }
+    }
+    
+    /**
+     * Clean up biome effects (call when leaving level)
+     */
+    static cleanupBiome(): void {
+        BiomeManager.cleanup();
     }
 }
