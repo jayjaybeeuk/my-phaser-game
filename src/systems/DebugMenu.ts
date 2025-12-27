@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { DEPTHS } from '../constants/depths';
+import { MusicManager } from './MusicManager';
 
 export interface DebugOptions {
     collisionEnabled: boolean;
@@ -19,6 +20,7 @@ export class DebugMenu {
     private unlimitedLives: boolean = false;
     private collisionText: Phaser.GameObjects.Text | null = null;
     private livesText: Phaser.GameObjects.Text | null = null;
+    private musicText: Phaser.GameObjects.Text | null = null;
     
     constructor(scene: Phaser.Scene, currentLevelIndex: number, totalLevels: number) {
         this.scene = scene;
@@ -38,60 +40,67 @@ export class DebugMenu {
         this.container.setVisible(false);
         
         // Semi-transparent background (made taller for new options)
-        const bg = this.scene.add.rectangle(400, 300, 450, 400, 0x000000, 0.85);
+        const bg = this.scene.add.rectangle(400, 300, 450, 430, 0x000000, 0.85);
         bg.setStrokeStyle(2, 0x00ff00);
         
         // Title
-        const title = this.scene.add.text(400, 140, 'DEBUG MENU', {
+        const title = this.scene.add.text(400, 120, 'DEBUG MENU', {
             fontSize: '32px',
             color: '#00ff00',
             fontStyle: 'bold'
         }).setOrigin(0.5);
         
         // Current level info
-        const levelInfo = this.scene.add.text(400, 190, `Current Level: ${this.currentLevelIndex + 1} / ${this.totalLevels}`, {
+        const levelInfo = this.scene.add.text(400, 170, `Current Level: ${this.currentLevelIndex + 1} / ${this.totalLevels}`, {
             fontSize: '20px',
             color: '#ffffff'
         }).setOrigin(0.5);
         
         // Separator
-        const separator1 = this.scene.add.text(400, 220, '─────────────────────', {
+        const separator1 = this.scene.add.text(400, 200, '─────────────────────', {
             fontSize: '16px',
             color: '#444444'
         }).setOrigin(0.5);
         
         // Debug options section
-        const optionsTitle = this.scene.add.text(400, 245, 'DEBUG OPTIONS', {
+        const optionsTitle = this.scene.add.text(400, 225, 'DEBUG OPTIONS', {
             fontSize: '18px',
             color: '#aaaaaa'
         }).setOrigin(0.5);
         
         // Collision toggle
-        this.collisionText = this.scene.add.text(400, 275, 'C: Collision Detection: ON', {
+        this.collisionText = this.scene.add.text(400, 255, 'C: Collision Detection: ON', {
             fontSize: '16px',
             color: '#00ff00'
         }).setOrigin(0.5);
         
         // Lives toggle
-        this.livesText = this.scene.add.text(400, 305, 'L: Unlimited Lives: OFF', {
+        this.livesText = this.scene.add.text(400, 285, 'L: Unlimited Lives: OFF', {
             fontSize: '16px',
             color: '#ff0000'
         }).setOrigin(0.5);
         
+        // Music/Ambient toggle
+        this.musicText = this.scene.add.text(400, 315, 'M: Audio: MUSIC', {
+            fontSize: '16px',
+            color: '#00ffff'
+        }).setOrigin(0.5);
+        this.updateMusicText();
+        
         // Separator
-        const separator2 = this.scene.add.text(400, 335, '─────────────────────', {
+        const separator2 = this.scene.add.text(400, 345, '─────────────────────', {
             fontSize: '16px',
             color: '#444444'
         }).setOrigin(0.5);
         
         // Instructions
-        const instructions = this.scene.add.text(400, 360, 'Press number key to skip to level:', {
+        const instructions = this.scene.add.text(400, 370, 'Press number key to skip to level:', {
             fontSize: '16px',
             color: '#aaaaaa'
         }).setOrigin(0.5);
         
         // Level buttons info
-        let yPos = 390;
+        let yPos = 400;
         const buttonTexts: Phaser.GameObjects.Text[] = [];
         
         for (let i = 0; i < this.totalLevels; i++) {
@@ -120,6 +129,7 @@ export class DebugMenu {
             optionsTitle,
             this.collisionText,
             this.livesText,
+            this.musicText,
             separator2,
             instructions, 
             ...buttonTexts, 
@@ -163,6 +173,12 @@ export class DebugMenu {
                 if (Phaser.Input.Keyboard.JustDown(lKey)) {
                     this.toggleUnlimitedLives();
                 }
+                
+                // Toggle music with M key
+                const mKey = keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M, false);
+                if (Phaser.Input.Keyboard.JustDown(mKey)) {
+                    this.toggleMusic();
+                }
             }
         }
     }
@@ -185,6 +201,13 @@ export class DebugMenu {
         console.log(`Debug: Unlimited lives ${this.unlimitedLives ? 'enabled' : 'disabled'}`);
     }
     
+    private toggleMusic(): void {
+        MusicManager.toggleMusic();
+        this.updateMusicText();
+        
+        console.log(`Debug: Music & Ambient ${MusicManager.isMusicEnabled() ? 'enabled' : 'disabled'}`);
+    }
+    
     private updateCollisionText(): void {
         if (this.collisionText) {
             const status = this.collisionEnabled ? 'ON' : 'OFF';
@@ -200,6 +223,16 @@ export class DebugMenu {
             const color = this.unlimitedLives ? '#00ff00' : '#ff0000';
             this.livesText.setText(`L: Unlimited Lives: ${status}`);
             this.livesText.setColor(color);
+        }
+    }
+    
+    private updateMusicText(): void {
+        if (this.musicText) {
+            const musicOn = MusicManager.isMusicEnabled();
+            const status = musicOn ? 'MUSIC' : 'AMBIENT';
+            const color = '#00ffff';
+            this.musicText.setText(`M: Audio: ${status}`);
+            this.musicText.setColor(color);
         }
     }
     
@@ -220,6 +253,7 @@ export class DebugMenu {
             this.updateLevelDisplay();
             this.updateCollisionText();
             this.updateLivesText();
+            this.updateMusicText();
         }
     }
     
@@ -240,9 +274,9 @@ export class DebugMenu {
         }
         
         // Update button colors to highlight current level
-        // Level buttons start at index 9 in the container
+        // Level buttons start at index 10 in the container (after adding music toggle)
         for (let i = 0; i < this.totalLevels; i++) {
-            const buttonText = this.container.list[9 + i] as Phaser.GameObjects.Text;
+            const buttonText = this.container.list[10 + i] as Phaser.GameObjects.Text;
             if (buttonText) {
                 buttonText.setColor(i === this.currentLevelIndex ? '#ffff00' : '#00ffff');
             }

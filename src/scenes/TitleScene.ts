@@ -38,6 +38,9 @@ export class TitleScene extends Phaser.Scene {
         // Set background color to black
         this.cameras.main.setBackgroundColor('#000000');
         
+        // Initialize MusicManager state from localStorage
+        MusicManager.initialize();
+        
         // Reset canStart flag
         this.canStart = false;
 
@@ -160,7 +163,7 @@ export class TitleScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Music toggle instruction
-        const musicInst = this.add.text(400, 505, 'M or SELECT to Toggle Music', {
+        const musicInst = this.add.text(400, 505, 'M or SELECT to Toggle Audio', {
             fontSize: '16px',
             color: '#aaaaaa'
         }).setOrigin(0.5);
@@ -379,10 +382,10 @@ export class TitleScene extends Phaser.Scene {
     }
     
     private updateMusicToggleText(): void {
-        const status = MusicManager.isMusicEnabled() ? 'ON' : 'OFF';
-        const color = MusicManager.isMusicEnabled() ? '#00ff00' : '#ff0000';
-        this.musicToggleText.setText(`Music: ${status}`);
-        this.musicToggleText.setColor(color);
+        const musicOn = MusicManager.isMusicEnabled();
+        const status = musicOn ? 'Music' : 'Ambient';
+        this.musicToggleText.setText(`Audio: ${status}`);
+        this.musicToggleText.setColor('#00ffff');
     }
 
     update() {

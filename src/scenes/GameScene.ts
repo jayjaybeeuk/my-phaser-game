@@ -59,21 +59,24 @@ export class GameScene extends Phaser.Scene {
     }
 
     create() {
+        // Initialize MusicManager state from localStorage
+        MusicManager.initialize();
+        
         // Apply biome effects (background, particles, fog, etc.)
         LevelManager.applyBiomeToScene(this, this.currentLevel);
         
         // Create animations
         AssetManager.createAnimations(this);
         
-        // Start playing the level music on loop (if enabled)
+        // Create level music
         this.levelMusic = this.sound.add('levelMusic', {
             volume: 0.4,
             loop: true
         });
         
-        if (MusicManager.isMusicEnabled()) {
-            this.levelMusic.play();
-        }
+        // Register with MusicManager and start if enabled
+        MusicManager.setLevelMusic(this.levelMusic);
+        MusicManager.startLevelMusicIfEnabled();
         
         // Initialize game systems
         this.gameStateManager = new GameStateManager();
@@ -662,10 +665,8 @@ export class GameScene extends Phaser.Scene {
         LevelManager.cleanupBiome();
         LevelManager.applyBiomeToScene(this, this.currentLevel);
         
-        // Restart the level music (if enabled)
-        if (MusicManager.isMusicEnabled() && this.levelMusic) {
-            this.levelMusic.play();
-        }
+        // Start the appropriate audio based on settings
+        MusicManager.startLevelMusicIfEnabled();
         
         // Preserve score from previous level
         const currentScore = this.uiSystem ? this.uiSystem.getScore() : 0;

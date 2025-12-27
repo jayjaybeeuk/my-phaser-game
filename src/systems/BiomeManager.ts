@@ -5,6 +5,8 @@
  * including colors, textures, physics modifiers, and ambient effects.
  */
 
+import { MusicManager } from './MusicManager';
+
 export enum BiomeType {
     CAVERN = 'cavern',
     UNDERGROUND = 'underground',
@@ -390,8 +392,14 @@ export class BiomeManager {
                     volume: biome.audio.ambientVolume ?? 0.3,
                     loop: true
                 });
-                this.ambientSound.play();
-                console.log(`Playing ambient sound: ${soundKey}`);
+                
+                // Only play ambient if music is disabled (they're mutually exclusive)
+                if (MusicManager.shouldPlayAmbient()) {
+                    this.ambientSound.play();
+                    console.log(`Playing ambient sound: ${soundKey}`);
+                } else {
+                    console.log(`Ambient sound '${soundKey}' loaded but music is playing`);
+                }
             } else {
                 console.log(`Ambient sound '${soundKey}' not found - biome will work without it`);
             }
@@ -401,12 +409,32 @@ export class BiomeManager {
     }
     
     /**
-     * Stop ambient sound
+     * Stop ambient sound completely
      */
     static stopAmbientSound(): void {
         if (this.ambientSound) {
             this.ambientSound.stop();
-            this.ambientSound = null;
+            // Don't null it - keep reference so we can resume
+        }
+    }
+    
+    /**
+     * Pause ambient sound (keeps reference for resuming)
+     */
+    static pauseAmbientSound(): void {
+        if (this.ambientSound && this.ambientSound.isPlaying) {
+            this.ambientSound.pause();
+            console.log('Ambient sound paused');
+        }
+    }
+    
+    /**
+     * Resume ambient sound (called when music is turned off)
+     */
+    static resumeAmbientSound(): void {
+        if (this.ambientSound && !this.ambientSound.isPlaying) {
+            this.ambientSound.play();
+            console.log('Ambient sound resumed');
         }
     }
     
