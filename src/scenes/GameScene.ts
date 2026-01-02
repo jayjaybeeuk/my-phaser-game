@@ -34,11 +34,7 @@ export class GameScene extends Phaser.Scene {
     private currentLevelIndex = 0;
     private canPressKey: boolean = true;
     private isTransitioningLevel: boolean = false;
-    private levels = [
-        LevelManager.getCentralCavernLevel(),
-        LevelManager.getUndergroundChamberLevel(),
-        LevelManager.getArcticZoneLevel()
-    ];
+    private levels = LevelManager.getAllLevels();
 
     constructor() {
         super({ key: 'GameScene' });
