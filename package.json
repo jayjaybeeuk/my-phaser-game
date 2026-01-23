@@ -11,6 +11,9 @@
     "start": "webpack serve --mode development",
     "dev": "webpack serve --mode development",
     "build:prod": "webpack --mode production",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "electron": "electron .",
     "electron:dev": "NODE_ENV=development electron .",
     "electron:build": "npm run build && electron-builder",
@@ -32,11 +35,14 @@
     "phaser": "^3.88.2"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "copy-webpack-plugin": "^13.0.1",
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1",
+    "jsdom": "^27.4.0",
     "ts-loader": "^9.5.2",
     "typescript": "^5.8.3",
+    "vitest": "^4.0.18",
     "webpack": "^5.99.5",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.1"
