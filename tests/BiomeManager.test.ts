@@ -67,6 +67,14 @@ describe('BiomeManager', () => {
             expect(biome.physics.airDepletionRate).toBe(2.0); // Very fast air depletion
         });
 
+        it('should return SLIME biome configuration', () => {
+            const biome = BiomeManager.getBiome(BiomeType.SLIME);
+            expect(biome.type).toBe(BiomeType.SLIME);
+            expect(biome.name).toBe('Slime');
+            expect(biome.physics.friction).toBe(0.5); // Slippery goo
+            expect(biome.physics.gravity).toBe(0.9); // Slightly floaty
+        });
+
         it('should fallback to CAVERN for unknown biome type', () => {
             const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
             const biome = BiomeManager.getBiome('unknown' as BiomeType);
@@ -77,9 +85,9 @@ describe('BiomeManager', () => {
     });
 
     describe('getAllBiomeTypes', () => {
-        it('should return all 7 biome types', () => {
+        it('should return all 8 biome types', () => {
             const types = BiomeManager.getAllBiomeTypes();
-            expect(types).toHaveLength(7);
+            expect(types).toHaveLength(8);
         });
 
         it('should include all defined biome types', () => {
@@ -90,14 +98,15 @@ describe('BiomeManager', () => {
             expect(types).toContain(BiomeType.LAVA);
             expect(types).toContain(BiomeType.FOREST);
             expect(types).toContain(BiomeType.CRYSTAL);
+            expect(types).toContain(BiomeType.SLIME);
             expect(types).toContain(BiomeType.TOXIC);
         });
     });
 
     describe('getAllBiomes', () => {
-        it('should return all 7 biome configurations', () => {
+        it('should return all 8 biome configurations', () => {
             const biomes = BiomeManager.getAllBiomes();
-            expect(biomes).toHaveLength(7);
+            expect(biomes).toHaveLength(8);
         });
 
         it('should return complete biome configs', () => {

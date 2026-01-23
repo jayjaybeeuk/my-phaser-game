@@ -14,7 +14,7 @@ export class DebugMenu {
     private isVisible: boolean = false;
     private toggleKey: Phaser.Input.Keyboard.Key;
     private currentLevelIndex: number = 0;
-    private totalLevels: number = 20;
+    private totalLevels: number = 21;
     private onLevelSkip: ((levelIndex: number) => void) | null = null;
     private onCollisionToggle: ((enabled: boolean) => void) | null = null;
     private collisionEnabled: boolean = true;

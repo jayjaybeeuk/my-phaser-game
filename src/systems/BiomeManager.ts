@@ -14,7 +14,8 @@ export enum BiomeType {
     LAVA = 'lava',
     FOREST = 'forest',
     CRYSTAL = 'crystal',
-    TOXIC = 'toxic'
+    TOXIC = 'toxic',
+    SLIME = 'slime'
 }
 
 export interface BiomePhysics {
@@ -36,7 +37,7 @@ export interface BiomeVisuals {
     /** Optional platform tint color */
     platformTint?: number;
     /** Ambient particle effect type */
-    ambientParticles?: 'snow' | 'embers' | 'spores' | 'bubbles' | 'sparkles' | 'drips' | 'none';
+    ambientParticles?: 'snow' | 'embers' | 'spores' | 'bubbles' | 'sparkles' | 'drips' | 'blobs' | 'none';
     /** Ambient particle color */
     particleColor?: number;
     /** Optional fog/overlay color and opacity */
@@ -242,6 +243,32 @@ const BIOME_DEFINITIONS: Map<BiomeType, BiomeConfig> = new Map([
             ambientSound: 'toxic-ambient',
             ambientVolume: 0.35
         }
+    }],
+
+    [BiomeType.SLIME, {
+        type: BiomeType.SLIME,
+        name: 'Slime',
+        description: 'Gooey caverns covered in sticky slime',
+        visuals: {
+            backgroundColor: 0x0a1a10,
+            brickTexture: 'brick-slime',
+            platformTint: 0x44dd66,
+            ambientParticles: 'blobs',
+            particleColor: 0x66ff88,
+            fogColor: 0x22aa44,
+            fogOpacity: 0.1,
+            uiAccentColor: '#66ff88'
+        },
+        physics: {
+            friction: 0.5,  // Slippery goo
+            gravity: 0.9,   // Slightly floaty/bouncy feel
+            airDepletionRate: 1.1,  // Slightly faster air drain from slime fumes
+            playerSpeedMultiplier: 0.95  // Slightly slower in the goo
+        },
+        audio: {
+            ambientSound: 'slime-ambient',
+            ambientVolume: 0.3
+        }
     }]
 ]);
 
@@ -361,6 +388,11 @@ export class BiomeManager {
             case 'drips':
                 graphics.fillRect(1, 0, 2, 6);
                 graphics.generateTexture('particle-drip', 4, 6);
+                break;
+            case 'blobs':
+                graphics.fillCircle(4, 4, 4);
+                graphics.fillCircle(6, 7, 2);
+                graphics.generateTexture('particle-blob', 10, 10);
                 break;
         }
         graphics.destroy();
@@ -520,6 +552,17 @@ export class BiomeManager {
                     lifespan: 5000,
                     frequency: 300
                 };
+            case 'blobs':
+                return {
+                    ...baseConfig,
+                    y: -10,
+                    speedY: { min: 40, max: 80 },
+                    speedX: { min: -5, max: 5 },
+                    scale: { min: 0.4, max: 1.2 },
+                    lifespan: 6000,
+                    frequency: 250,
+                    alpha: { start: 0.7, end: 0.2 }
+                };
             default:
                 return baseConfig;
         }
@@ -555,7 +598,7 @@ export class BiomeManager {
      * Check if a texture key indicates a slippery surface
      */
     static isSlipperySurface(textureKey: string): boolean {
-        const slipperyTextures = ['brick-ice', 'brick-moss', 'brick-toxic'];
+        const slipperyTextures = ['brick-ice', 'brick-moss', 'brick-toxic', 'brick-slime'];
         return slipperyTextures.includes(textureKey);
     }
     
@@ -569,7 +612,8 @@ export class BiomeManager {
             'brick-lava': 1.2,
             'brick-moss': 0.8,
             'brick-crystal': 1.0,
-            'brick-toxic': 0.7
+            'brick-toxic': 0.7,
+            'brick-slime': 0.5
         };
         return frictionMap[textureKey] ?? 1.0;
     }

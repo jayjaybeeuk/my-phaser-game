@@ -1177,7 +1177,83 @@ export class LevelManager {
     }
 
     // =====================================================
-    // LEVEL 20: The Final Descent (CAVERN - ultimate challenge)
+    // LEVEL 20: Slime Caverns (SLIME biome)
+    // =====================================================
+    static getSlimeCavernsLevel(): LevelConfig {
+        return {
+            name: 'Slime Caverns',
+            biome: BiomeType.SLIME,
+            playerStart: {x: 50, y: 520},
+            exit: {x: 750, y: 80},
+            platforms: [
+                // Ground level with slime pools (gaps)
+                {x: 0, y: 584, width: 128},
+                {x: 200, y: 584, width: 96},
+                {x: 368, y: 584, width: 64},
+                {x: 504, y: 584, width: 96},
+                {x: 672, y: 584, width: 128},
+                // Slime-covered stepping stones - lower tier
+                {x: 128, y: 520, width: 64},
+                {x: 296, y: 500, width: 80},
+                {x: 432, y: 520, width: 64},
+                {x: 600, y: 500, width: 80},
+                // Mid-level gooey platforms
+                {x: 32, y: 440, width: 96},
+                {x: 176, y: 400, width: 112},
+                {x: 352, y: 420, width: 96},
+                {x: 512, y: 400, width: 112},
+                {x: 680, y: 440, width: 96},
+                // Upper slime formations
+                {x: 96, y: 320, width: 80},
+                {x: 240, y: 300, width: 96},
+                {x: 400, y: 320, width: 80},
+                {x: 544, y: 300, width: 96},
+                {x: 704, y: 320, width: 80},
+                // High slime stalactites (platforms)
+                {x: 160, y: 220, width: 80},
+                {x: 320, y: 200, width: 112},
+                {x: 496, y: 220, width: 80},
+                {x: 640, y: 200, width: 96},
+                // Top exit area
+                {x: 64, y: 140, width: 112},
+                {x: 240, y: 120, width: 96},
+                {x: 416, y: 140, width: 112},
+                {x: 592, y: 120, width: 96},
+                {x: 704, y: 120, width: 96}
+            ],
+            collectibles: [
+                // Ground level
+                {x: 64, y: 564}, {x: 248, y: 564}, {x: 400, y: 564}, {x: 552, y: 564}, {x: 736, y: 564},
+                // Lower stepping stones
+                {x: 160, y: 500}, {x: 336, y: 480}, {x: 464, y: 500}, {x: 640, y: 480},
+                // Mid platforms
+                {x: 80, y: 420}, {x: 232, y: 380}, {x: 400, y: 400}, {x: 568, y: 380}, {x: 728, y: 420},
+                // Upper formations
+                {x: 136, y: 300}, {x: 288, y: 280}, {x: 440, y: 300}, {x: 592, y: 280}, {x: 744, y: 300},
+                // High stalactites
+                {x: 200, y: 200}, {x: 376, y: 180}, {x: 536, y: 200}, {x: 688, y: 180},
+                // Top area
+                {x: 120, y: 120}, {x: 288, y: 100}, {x: 472, y: 120}, {x: 640, y: 100}, {x: 752, y: 100}
+            ],
+            airCapsules: [
+                {x: 400, y: 400},
+                {x: 288, y: 100}
+            ],
+            enemies: [
+                {x: 160, y: 500, type: 'enemy-one', velocity: 65},
+                {x: 464, y: 500, type: 'enemy-two', velocity: -70},
+                {x: 232, y: 380, type: 'enemy-three', velocity: 60},
+                {x: 568, y: 380, type: 'enemy-four', velocity: -65},
+                {x: 288, y: 280, type: 'enemy-one', velocity: 75},
+                {x: 592, y: 280, type: 'enemy-two', velocity: -70},
+                {x: 376, y: 180, type: 'enemy-three', velocity: 80},
+                {x: 472, y: 120, type: 'enemy-four', velocity: -75}
+            ]
+        };
+    }
+
+    // =====================================================
+    // LEVEL 21: The Final Descent (CAVERN - ultimate challenge)
     // =====================================================
     static getTheFinalDescentLevel(): LevelConfig {
         return {
@@ -1263,7 +1339,8 @@ export class LevelManager {
             this.getEmeraldGroveLevel(),         // 17
             this.getDiamondSpireLevel(),         // 18
             this.getBiohazardBayLevel(),         // 19
-            this.getTheFinalDescentLevel()       // 20
+            this.getSlimeCavernsLevel(),         // 20
+            this.getTheFinalDescentLevel()       // 21
         ];
     }
 
