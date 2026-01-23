@@ -17,7 +17,6 @@ export default defineConfig({
                 'src/scenes/**/*.ts', // Scenes require Phaser runtime
                 'src/objects/**/*.ts', // Game objects require Phaser runtime
                 'src/assets/**/*.ts', // Asset loading requires Phaser
-                'src/systems/AudioManager.ts', // Requires Phaser sound API
                 'src/systems/MusicManager.ts', // Requires Phaser sound API
                 'src/systems/UISystem.ts', // Requires Phaser scene API
                 'src/systems/DebugMenu.ts', // Requires Phaser scene API

@@ -28,6 +28,3 @@ export const DEPTHS = {
     DEBUG_OVERLAY: 1000,
     LOADING_SCREEN: 2000
 } as const;
-
-// Export type for TypeScript intellisense
-export type DepthLayer = typeof DEPTHS[keyof typeof DEPTHS];
