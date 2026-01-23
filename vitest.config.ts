@@ -23,6 +23,12 @@ export default defineConfig({
                 'src/systems/DebugMenu.ts', // Requires Phaser scene API
                 'src/constants/**/*.ts', // Just constants, no logic to test
             ],
+            thresholds: {
+                lines: 80,
+                functions: 80,
+                branches: 80,
+                statements: 80,
+            },
         },
     },
 });

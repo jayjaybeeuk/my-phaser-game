@@ -1,6 +1,7 @@
 dist
 node_modules
 release
+coverage
 *.log
 .DS_Store
 build/*.icns

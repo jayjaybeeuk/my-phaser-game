@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+echo "Running code coverage check before push..."
+echo "Coverage threshold: 80% (lines, functions, branches, statements)"
+echo ""
+
+npm run test:coverage
+
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "Push rejected: Code coverage is below 80%"
+    echo "Please add more tests to improve coverage before pushing."
+    exit 1
+fi
+
+echo ""
+echo "Coverage check passed!"
