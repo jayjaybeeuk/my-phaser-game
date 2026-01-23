@@ -4,9 +4,9 @@ import { BiomeType } from '../src/systems/BiomeManager';
 
 describe('LevelManager', () => {
     describe('getAllLevels', () => {
-        it('should return 20 levels', () => {
+        it('should return 21 levels', () => {
             const levels = LevelManager.getAllLevels();
-            expect(levels).toHaveLength(20);
+            expect(levels).toHaveLength(21);
         });
 
         it('should have unique level names', () => {
