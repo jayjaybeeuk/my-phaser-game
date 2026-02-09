@@ -14,6 +14,7 @@ import { DebugMenu } from '../systems/DebugMenu';
 import { HighScoreManager } from '../systems/HighScoreManager';
 import { PlatformDetector } from '../utils/PlatformDetector';
 import { DEPTHS } from '../constants/depths';
+import { TouchControls } from '../systems/TouchControls';
 
 export class GameScene extends Phaser.Scene {
     private platforms!: Phaser.Physics.Arcade.StaticGroup;
@@ -35,6 +36,7 @@ export class GameScene extends Phaser.Scene {
     private canPressKey: boolean = true;
     private isTransitioningLevel: boolean = false;
     private levels = LevelManager.getAllLevels();
+    private touchControls!: TouchControls;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -149,6 +151,9 @@ export class GameScene extends Phaser.Scene {
         
         // Setup gamepad for restart functionality
         this.setupGamepadInput();
+
+        // Setup touch controls
+        this.touchControls = new TouchControls(this);
     }
     
     private setupGamepadInput(): void {
@@ -177,7 +182,7 @@ export class GameScene extends Phaser.Scene {
                 return true;
             }
         }
-        
+
         // Check for gamepad START button only
         try {
             if (this.input.gamepad && this.input.gamepad.total > 0) {
@@ -192,7 +197,14 @@ export class GameScene extends Phaser.Scene {
         } catch (error) {
             // Gamepad check failed
         }
-        
+
+        // Check for touch select or jump button press
+        if (this.touchControls) {
+            if (this.touchControls.consumeSelectPress() || this.touchControls.consumeJumpPress()) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -242,7 +254,13 @@ export class GameScene extends Phaser.Scene {
             if (this.isTransitioningLevel) {
                 return;
             }
-            
+
+            // Update touch edge detection even when game is ended
+            if (this.touchControls) {
+                this.touchControls.updateSelectEdge();
+                this.touchControls.updateJumpEdge();
+            }
+
             // Check for any key press to continue or return to title (with delay to prevent immediate trigger)
             if (this.canPressKey && this.isAnyKeyPressed()) {
                 if (this.gameStateManager.isGameWon()) {
@@ -259,6 +277,13 @@ export class GameScene extends Phaser.Scene {
             return;
         }
         
+        // Feed touch input to player controller
+        if (this.touchControls) {
+            this.touchControls.updateSelectEdge();
+            this.touchControls.updateJumpEdge();
+            this.playerController.setTouchInput(this.touchControls.getInput());
+        }
+
         // Update game objects
         this.playerController.update();
         
@@ -732,5 +757,11 @@ export class GameScene extends Phaser.Scene {
         
         // Resume physics
         this.physics.resume();
+
+        // Recreate touch controls (they get destroyed by children.removeAll)
+        if (this.touchControls) {
+            this.touchControls.destroy();
+        }
+        this.touchControls = new TouchControls(this);
     }
 }

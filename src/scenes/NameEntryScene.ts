@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { HighScoreManager } from '../systems/HighScoreManager';
 import { DEPTHS } from '../constants/depths';
+import { TouchControls } from '../systems/TouchControls';
 
 export class NameEntryScene extends Phaser.Scene {
     private nameInput: string = '';
@@ -10,6 +11,10 @@ export class NameEntryScene extends Phaser.Scene {
     private rank: number = 1;
     private cursorBlinkTimer!: Phaser.Time.TimerEvent;
     private cursorVisible: boolean = true;
+    private touchControls!: TouchControls;
+    private selectedLetterIndex: number = 0;
+    private letterButtons: Phaser.GameObjects.Text[] = [];
+    private letterHighlight!: Phaser.GameObjects.Rectangle;
 
     constructor() {
         super({ key: 'NameEntryScene' });
@@ -100,6 +105,84 @@ export class NameEntryScene extends Phaser.Scene {
 
         // Set up keyboard input
         this.input.keyboard!.on('keydown', this.handleKeyPress, this);
+
+        // Create touch letter grid for mobile input
+        this.createTouchLetterGrid();
+
+        // Setup touch controls
+        this.touchControls = new TouchControls(this);
+    }
+
+    private createTouchLetterGrid(): void {
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const cols = 9;
+        const startX = 130;
+        const startY = 440;
+        const cellW = 60;
+        const cellH = 44;
+
+        for (let i = 0; i < letters.length; i++) {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const x = startX + col * cellW;
+            const y = startY + row * cellH;
+
+            const letterText = this.add.text(x, y, letters[i], {
+                fontSize: '28px',
+                color: '#00ffff',
+                fontFamily: 'monospace',
+                fontStyle: 'bold'
+            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+            letterText.on('pointerdown', () => {
+                if (this.nameInput.length < 4) {
+                    this.nameInput += letters[i];
+                    this.updateNameDisplay();
+                }
+            });
+
+            this.letterButtons.push(letterText);
+        }
+
+        // Add backspace and enter touch buttons
+        const bkspX = startX + 7 * cellW;
+        const enterX = startX + 8 * cellW;
+        const btnY = startY + 3 * cellH;
+
+        const bksp = this.add.text(bkspX - cellW / 2, btnY, 'DEL', {
+            fontSize: '20px',
+            color: '#ff6666',
+            fontFamily: 'monospace',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        bksp.on('pointerdown', () => {
+            if (this.nameInput.length > 0) {
+                this.nameInput = this.nameInput.slice(0, -1);
+                this.updateNameDisplay();
+            }
+        });
+
+        const enter = this.add.text(enterX, btnY, 'OK', {
+            fontSize: '20px',
+            color: '#00ff00',
+            fontFamily: 'monospace',
+            fontStyle: 'bold'
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        enter.on('pointerdown', () => {
+            if (this.nameInput.length > 0) {
+                this.submitScore();
+            }
+        });
+    }
+
+    update(): void {
+        // Update touch edge detection for select button as confirm
+        if (this.touchControls) {
+            this.touchControls.updateSelectEdge();
+            if (this.touchControls.consumeSelectPress() && this.nameInput.length > 0) {
+                this.submitScore();
+            }
+        }
     }
 
     private handleKeyPress(event: KeyboardEvent) {
@@ -153,6 +236,11 @@ export class NameEntryScene extends Phaser.Scene {
 
         // Remove keyboard listener
         this.input.keyboard!.off('keydown', this.handleKeyPress, this);
+
+        // Clean up touch controls
+        if (this.touchControls) {
+            this.touchControls.destroy();
+        }
 
         // Wait a moment then go to title screen
         this.time.delayedCall(2000, () => {

@@ -24,6 +24,9 @@ export const DEPTHS = {
     LEVEL_COMPLETE_BACKGROUND: 200,
     LEVEL_COMPLETE_TEXT: 201,
     
+    // Touch controls (above game, below debug)
+    TOUCH_CONTROLS: 500,
+
     // Top-level overlays
     DEBUG_OVERLAY: 1000,
     LOADING_SCREEN: 2000

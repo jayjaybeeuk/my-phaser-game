@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { MusicManager } from '../systems/MusicManager';
 import { HighScoreManager, HighScoreEntry } from '../systems/HighScoreManager';
 import { PlatformDetector } from '../utils/PlatformDetector';
+import { TouchControls } from '../systems/TouchControls';
 
 export class TitleScene extends Phaser.Scene {
     private startKey!: Phaser.Input.Keyboard.Key;
@@ -15,6 +16,7 @@ export class TitleScene extends Phaser.Scene {
     private highScoreContainer!: Phaser.GameObjects.Container;
     private showingTitle: boolean = true;
     private rotationTimer!: Phaser.Time.TimerEvent;
+    private touchControls!: TouchControls;
 
     constructor() {
         super({ key: 'TitleScene' });
@@ -104,6 +106,9 @@ export class TitleScene extends Phaser.Scene {
         // Setup gamepad
         this.setupGamepadInput();
         
+        // Setup touch controls
+        this.touchControls = new TouchControls(this);
+
         // Delay start detection to prevent immediate start from game over screen
         this.time.delayedCall(1000, () => {
             this.canStart = true;
@@ -357,9 +362,15 @@ export class TitleScene extends Phaser.Scene {
             // Gamepad check failed, just use keyboard
         }
         
-        return keyboardStart || gamepadStart;
+        // Check touch select or jump button
+        let touchStart = false;
+        if (this.touchControls) {
+            touchStart = this.touchControls.consumeSelectPress() || this.touchControls.consumeJumpPress();
+        }
+
+        return keyboardStart || gamepadStart || touchStart;
     }
-    
+
     private isMusicTogglePressed(): boolean {
         // Check keyboard M key
         const keyboardToggle = Phaser.Input.Keyboard.JustDown(this.mKey);
@@ -389,6 +400,12 @@ export class TitleScene extends Phaser.Scene {
     }
 
     update() {
+        // Update touch edge detection
+        if (this.touchControls) {
+            this.touchControls.updateSelectEdge();
+            this.touchControls.updateJumpEdge();
+        }
+
         // Check for music toggle
         if (this.isMusicTogglePressed()) {
             MusicManager.toggleMusic();
@@ -410,12 +427,17 @@ export class TitleScene extends Phaser.Scene {
         if (this.canStart && this.isStartPressed()) {
             // Stop the music before transitioning to game
             this.music.stop();
-            
+
             // Clean up timer
             if (this.rotationTimer) {
                 this.rotationTimer.remove();
             }
-            
+
+            // Clean up touch controls
+            if (this.touchControls) {
+                this.touchControls.destroy();
+            }
+
             // Start the game
             this.scene.start('GameScene');
         }

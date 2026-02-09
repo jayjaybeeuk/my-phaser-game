@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BiomeManager } from '../systems/BiomeManager';
+import { TouchInput } from '../systems/TouchControls';
 
 export class PlayerController {
     private player: Phaser.Physics.Arcade.Sprite;
@@ -11,6 +12,7 @@ export class PlayerController {
     private wasOnGround: boolean = true; // Track if player was on ground last frame
     private scene: Phaser.Scene;
     private platforms?: Phaser.Physics.Arcade.StaticGroup; // Reference to platforms for ice detection
+    private touchInput: TouchInput | null = null;
 
     constructor(scene: Phaser.Scene, x: number, y: number, platforms?: Phaser.Physics.Arcade.StaticGroup) {
         this.scene = scene;
@@ -195,6 +197,10 @@ export class PlayerController {
         }
     }
 
+    setTouchInput(input: TouchInput | null): void {
+        this.touchInput = input;
+    }
+
     getSprite(): Phaser.Physics.Arcade.Sprite {
         return this.player;
     }
@@ -273,11 +279,12 @@ export class PlayerController {
         const isOnGround = this.player.body!.touching.down;
         const onIce = this.isOnIce();
         
-        // Get input from both keyboard and gamepad
+        // Get input from keyboard, gamepad, and touch
         const gamepadInput = this.getGamepadInput();
-        const leftPressed = this.cursors.left.isDown || gamepadInput.left;
-        const rightPressed = this.cursors.right.isDown || gamepadInput.right;
-        const jumpPressed = this.cursors.up.isDown || gamepadInput.jump;
+        const touch = this.touchInput;
+        const leftPressed = this.cursors.left.isDown || gamepadInput.left || (touch?.left ?? false);
+        const rightPressed = this.cursors.right.isDown || gamepadInput.right || (touch?.right ?? false);
+        const jumpPressed = this.cursors.up.isDown || gamepadInput.jump || (touch?.jump ?? false) || (touch?.up ?? false);
         
         // Ice physics constants
         const normalSpeed = 200;
