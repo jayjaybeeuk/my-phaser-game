@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { BiomeManager, BiomeType, BiomeConfig, BiomePhysics, BiomeVisuals } from '../src/systems/BiomeManager';
+import { BiomeManager, BiomeType, BiomeConfig } from '../src/systems/BiomeManager';
+import { MusicManager } from '../src/systems/MusicManager';
 
 // Mock MusicManager to avoid Phaser dependencies
 vi.mock('../src/systems/MusicManager', () => ({
@@ -8,6 +9,68 @@ vi.mock('../src/systems/MusicManager', () => ({
     },
 }));
 
+const mockedShouldPlayAmbient = MusicManager.shouldPlayAmbient as unknown as ReturnType<typeof vi.fn>;
+
+/**
+ * Create a mock Phaser.Scene for testing Phaser-dependent BiomeManager methods
+ */
+function createMockScene() {
+    const mockGraphics = {
+        fillStyle: vi.fn().mockReturnThis(),
+        fillRoundedRect: vi.fn().mockReturnThis(),
+        lineStyle: vi.fn().mockReturnThis(),
+        strokeRoundedRect: vi.fn().mockReturnThis(),
+        fillCircle: vi.fn().mockReturnThis(),
+        strokeCircle: vi.fn().mockReturnThis(),
+        fillRect: vi.fn().mockReturnThis(),
+        generateTexture: vi.fn().mockReturnThis(),
+        destroy: vi.fn(),
+        clear: vi.fn(),
+    };
+
+    const mockRectangle = {
+        setDepth: vi.fn().mockReturnThis(),
+        setScrollFactor: vi.fn().mockReturnThis(),
+        destroy: vi.fn(),
+    };
+
+    const mockParticles = {
+        setDepth: vi.fn().mockReturnThis(),
+        destroy: vi.fn(),
+    };
+
+    const mockSound = {
+        play: vi.fn(),
+        stop: vi.fn(),
+        pause: vi.fn(),
+        isPlaying: true,
+        setVolume: vi.fn(),
+    };
+
+    const mockScene = {
+        cameras: {
+            main: {
+                setBackgroundColor: vi.fn(),
+            },
+        },
+        add: {
+            rectangle: vi.fn(() => mockRectangle),
+            graphics: vi.fn(() => mockGraphics),
+            particles: vi.fn(() => mockParticles),
+        },
+        sound: {
+            add: vi.fn(() => mockSound),
+        },
+        cache: {
+            audio: {
+                exists: vi.fn(() => true),
+            },
+        },
+    };
+
+    return { mockScene, mockGraphics, mockRectangle, mockParticles, mockSound };
+}
+
 describe('BiomeManager', () => {
     beforeEach(() => {
         // Reset any state between tests
@@ -15,6 +78,12 @@ describe('BiomeManager', () => {
     });
 
     afterEach(() => {
+        // Ensure ambientSound is null or has stop() to avoid cleanup errors
+        const sound = (BiomeManager as any).ambientSound;
+        if (sound && typeof sound.stop !== 'function') {
+            (BiomeManager as any).ambientSound = null;
+        }
+        BiomeManager.cleanup();
         vi.clearAllMocks();
     });
 
@@ -245,6 +314,10 @@ describe('BiomeManager', () => {
             expect(BiomeManager.isSlipperySurface('brick-toxic')).toBe(true);
         });
 
+        it('should return true for slime texture', () => {
+            expect(BiomeManager.isSlipperySurface('brick-slime')).toBe(true);
+        });
+
         it('should return false for regular brick', () => {
             expect(BiomeManager.isSlipperySurface('brick')).toBe(false);
         });
@@ -283,6 +356,10 @@ describe('BiomeManager', () => {
             expect(BiomeManager.getFrictionForTexture('brick-toxic')).toBe(0.7);
         });
 
+        it('should return 0.5 for slime brick', () => {
+            expect(BiomeManager.getFrictionForTexture('brick-slime')).toBe(0.5);
+        });
+
         it('should return 1.0 for unknown texture', () => {
             expect(BiomeManager.getFrictionForTexture('unknown')).toBe(1.0);
         });
@@ -306,6 +383,36 @@ describe('BiomeManager', () => {
         it('should reset current biome to null', () => {
             BiomeManager.cleanup();
             expect(BiomeManager.getCurrentBiome()).toBeNull();
+        });
+
+        it('should stop and clean up ambient sound', () => {
+            const mockSound = { stop: vi.fn(), pause: vi.fn(), play: vi.fn(), isPlaying: true };
+            (BiomeManager as any).ambientSound = mockSound;
+
+            BiomeManager.cleanup();
+
+            expect(mockSound.stop).toHaveBeenCalled();
+            expect((BiomeManager as any).ambientSound).toBeNull();
+        });
+
+        it('should destroy and clean up particle emitter', () => {
+            const mockEmitter = { destroy: vi.fn() };
+            (BiomeManager as any).particleEmitter = mockEmitter;
+
+            BiomeManager.cleanup();
+
+            expect(mockEmitter.destroy).toHaveBeenCalled();
+            expect((BiomeManager as any).particleEmitter).toBeNull();
+        });
+
+        it('should destroy and clean up fog overlay', () => {
+            const mockFog = { destroy: vi.fn() };
+            (BiomeManager as any).fogOverlay = mockFog;
+
+            BiomeManager.cleanup();
+
+            expect(mockFog.destroy).toHaveBeenCalled();
+            expect((BiomeManager as any).fogOverlay).toBeNull();
         });
     });
 
@@ -365,6 +472,11 @@ describe('BiomeManager', () => {
             const underground = BiomeManager.getBiome(BiomeType.UNDERGROUND);
             expect(underground.visuals.ambientParticles).toBe('drips');
         });
+
+        it('SLIME should have blob particles', () => {
+            const slime = BiomeManager.getBiome(BiomeType.SLIME);
+            expect(slime.visuals.ambientParticles).toBe('blobs');
+        });
     });
 
     describe('fog effects', () => {
@@ -384,6 +496,450 @@ describe('BiomeManager', () => {
         it('CAVERN should not have fog', () => {
             const cavern = BiomeManager.getBiome(BiomeType.CAVERN);
             expect(cavern.visuals.fogColor).toBeUndefined();
+        });
+
+        it('CRYSTAL should have fog', () => {
+            const crystal = BiomeManager.getBiome(BiomeType.CRYSTAL);
+            expect(crystal.visuals.fogColor).toBeDefined();
+            expect(crystal.visuals.fogOpacity).toBeDefined();
+        });
+
+        it('TOXIC should have fog', () => {
+            const toxic = BiomeManager.getBiome(BiomeType.TOXIC);
+            expect(toxic.visuals.fogColor).toBeDefined();
+            expect(toxic.visuals.fogOpacity).toBeDefined();
+        });
+
+        it('SLIME should have fog', () => {
+            const slime = BiomeManager.getBiome(BiomeType.SLIME);
+            expect(slime.visuals.fogColor).toBeDefined();
+            expect(slime.visuals.fogOpacity).toBeDefined();
+        });
+    });
+
+    // ============================================================
+    // Tests for Phaser-dependent methods using mocked scene objects
+    // ============================================================
+
+    describe('applyBiome', () => {
+        it('should set background color on the scene camera', () => {
+            const { mockScene } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.CAVERN);
+            expect(mockScene.cameras.main.setBackgroundColor).toHaveBeenCalledWith(0x000000);
+        });
+
+        it('should set currentBiome after applying', () => {
+            const { mockScene } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.ARCTIC);
+            expect(BiomeManager.getCurrentBiome()?.type).toBe(BiomeType.ARCTIC);
+        });
+
+        it('should return the biome config', () => {
+            const { mockScene } = createMockScene();
+            const result = BiomeManager.applyBiome(mockScene as any, BiomeType.LAVA);
+            expect(result.type).toBe(BiomeType.LAVA);
+            expect(result.name).toBe('Lava');
+        });
+
+        it('should create fog overlay for biomes with fog', () => {
+            const { mockScene, mockRectangle } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.ARCTIC);
+            expect(mockScene.add.rectangle).toHaveBeenCalled();
+            expect(mockRectangle.setDepth).toHaveBeenCalledWith(5);
+            expect(mockRectangle.setScrollFactor).toHaveBeenCalledWith(0);
+        });
+
+        it('should not create fog overlay for CAVERN (no fog)', () => {
+            const { mockScene } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.CAVERN);
+            expect(mockScene.add.rectangle).not.toHaveBeenCalled();
+        });
+
+        it('should create ambient particles for biomes with particles', () => {
+            const { mockScene, mockGraphics } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.ARCTIC);
+            expect(mockScene.add.graphics).toHaveBeenCalled();
+            expect(mockScene.add.particles).toHaveBeenCalled();
+            expect(mockGraphics.destroy).toHaveBeenCalled();
+        });
+
+        it('should not create particles for CAVERN (no ambient particles)', () => {
+            const { mockScene } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.CAVERN);
+            // graphics is not called for particle creation (CAVERN has no ambientParticles)
+            expect(mockScene.add.particles).not.toHaveBeenCalled();
+        });
+
+        it('should attempt to play ambient sound when audio cache has it', () => {
+            const { mockScene, mockSound } = createMockScene();
+            mockedShouldPlayAmbient.mockReturnValueOnce(true);
+
+            BiomeManager.applyBiome(mockScene as any, BiomeType.CAVERN);
+
+            expect(mockScene.cache.audio.exists).toHaveBeenCalledWith('cavern-ambient');
+            expect(mockScene.sound.add).toHaveBeenCalled();
+            expect(mockSound.play).toHaveBeenCalled();
+        });
+
+        it('should not play ambient sound when music is playing', () => {
+            const { mockScene, mockSound } = createMockScene();
+            mockedShouldPlayAmbient.mockReturnValueOnce(false);
+
+            BiomeManager.applyBiome(mockScene as any, BiomeType.CAVERN);
+
+            expect(mockSound.play).not.toHaveBeenCalled();
+        });
+
+        it('should handle missing audio cache gracefully', () => {
+            const { mockScene } = createMockScene();
+            mockScene.cache.audio.exists.mockReturnValue(false);
+
+            expect(() => BiomeManager.applyBiome(mockScene as any, BiomeType.CAVERN)).not.toThrow();
+            expect(mockScene.sound.add).not.toHaveBeenCalled();
+        });
+
+        it('should handle audio errors gracefully', () => {
+            const { mockScene } = createMockScene();
+            mockScene.cache.audio.exists.mockImplementation(() => {
+                throw new Error('Audio error');
+            });
+
+            expect(() => BiomeManager.applyBiome(mockScene as any, BiomeType.CAVERN)).not.toThrow();
+        });
+
+        it('should clean up existing fog when applying a new biome', () => {
+            const { mockScene, mockRectangle } = createMockScene();
+            // Apply Arctic first (has fog)
+            BiomeManager.applyBiome(mockScene as any, BiomeType.ARCTIC);
+            const destroyCalls = mockRectangle.destroy.mock.calls.length;
+
+            // Apply another biome with fog
+            BiomeManager.applyBiome(mockScene as any, BiomeType.LAVA);
+            expect(mockRectangle.destroy.mock.calls.length).toBeGreaterThan(destroyCalls);
+        });
+
+        it('should clean up existing particles when applying a new biome', () => {
+            const { mockScene, mockParticles } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.ARCTIC);
+            const destroyCalls = mockParticles.destroy.mock.calls.length;
+
+            BiomeManager.applyBiome(mockScene as any, BiomeType.LAVA);
+            expect(mockParticles.destroy.mock.calls.length).toBeGreaterThan(destroyCalls);
+        });
+
+        it('should apply each biome type without errors', () => {
+            const biomeTypes = BiomeManager.getAllBiomeTypes();
+            biomeTypes.forEach(type => {
+                const { mockScene } = createMockScene();
+                expect(() => BiomeManager.applyBiome(mockScene as any, type)).not.toThrow();
+                BiomeManager.cleanup();
+            });
+        });
+    });
+
+    describe('particle creation for each biome type', () => {
+        it('should generate snow particle texture for ARCTIC', () => {
+            const { mockScene, mockGraphics } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.ARCTIC);
+            expect(mockGraphics.fillCircle).toHaveBeenCalled();
+            expect(mockGraphics.generateTexture).toHaveBeenCalledWith('particle-snow', 4, 4);
+        });
+
+        it('should generate ember particle texture for LAVA', () => {
+            const { mockScene, mockGraphics } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.LAVA);
+            expect(mockGraphics.fillCircle).toHaveBeenCalled();
+            expect(mockGraphics.generateTexture).toHaveBeenCalledWith('particle-ember', 6, 6);
+        });
+
+        it('should generate spore particle texture for FOREST', () => {
+            const { mockScene, mockGraphics } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.FOREST);
+            expect(mockGraphics.fillCircle).toHaveBeenCalled();
+            expect(mockGraphics.generateTexture).toHaveBeenCalledWith('particle-spore', 3, 3);
+        });
+
+        it('should generate bubble particle texture for TOXIC', () => {
+            const { mockScene, mockGraphics } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.TOXIC);
+            expect(mockGraphics.strokeCircle).toHaveBeenCalled();
+            expect(mockGraphics.generateTexture).toHaveBeenCalledWith('particle-bubble', 8, 8);
+        });
+
+        it('should generate sparkle particle texture for CRYSTAL', () => {
+            const { mockScene, mockGraphics } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.CRYSTAL);
+            expect(mockGraphics.fillRect).toHaveBeenCalled();
+            expect(mockGraphics.generateTexture).toHaveBeenCalledWith('particle-sparkle', 5, 5);
+        });
+
+        it('should generate drip particle texture for UNDERGROUND', () => {
+            const { mockScene, mockGraphics } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.UNDERGROUND);
+            expect(mockGraphics.fillRect).toHaveBeenCalled();
+            expect(mockGraphics.generateTexture).toHaveBeenCalledWith('particle-drip', 4, 6);
+        });
+
+        it('should generate blob particle texture for SLIME', () => {
+            const { mockScene, mockGraphics } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.SLIME);
+            expect(mockGraphics.fillCircle).toHaveBeenCalled();
+            expect(mockGraphics.generateTexture).toHaveBeenCalledWith('particle-blob', 10, 10);
+        });
+    });
+
+    describe('stopAmbientSound', () => {
+        it('should stop the ambient sound when it exists', () => {
+            const mockSound = { stop: vi.fn(), isPlaying: true };
+            (BiomeManager as any).ambientSound = mockSound;
+
+            BiomeManager.stopAmbientSound();
+
+            expect(mockSound.stop).toHaveBeenCalled();
+        });
+
+        it('should not throw when no ambient sound exists', () => {
+            (BiomeManager as any).ambientSound = null;
+            expect(() => BiomeManager.stopAmbientSound()).not.toThrow();
+        });
+
+        it('should keep the sound reference after stopping (for resume)', () => {
+            const mockSound = { stop: vi.fn(), isPlaying: true };
+            (BiomeManager as any).ambientSound = mockSound;
+
+            BiomeManager.stopAmbientSound();
+
+            // Sound reference should be kept (not nulled) for potential resume
+            expect((BiomeManager as any).ambientSound).toBe(mockSound);
+        });
+    });
+
+    describe('pauseAmbientSound', () => {
+        it('should pause playing ambient sound', () => {
+            const mockSound = { pause: vi.fn(), isPlaying: true };
+            (BiomeManager as any).ambientSound = mockSound;
+
+            BiomeManager.pauseAmbientSound();
+
+            expect(mockSound.pause).toHaveBeenCalled();
+        });
+
+        it('should not pause when sound is not playing', () => {
+            const mockSound = { pause: vi.fn(), isPlaying: false };
+            (BiomeManager as any).ambientSound = mockSound;
+
+            BiomeManager.pauseAmbientSound();
+
+            expect(mockSound.pause).not.toHaveBeenCalled();
+        });
+
+        it('should not throw when no ambient sound exists', () => {
+            (BiomeManager as any).ambientSound = null;
+            expect(() => BiomeManager.pauseAmbientSound()).not.toThrow();
+        });
+    });
+
+    describe('resumeAmbientSound', () => {
+        it('should resume stopped ambient sound', () => {
+            const mockSound = { play: vi.fn(), isPlaying: false };
+            (BiomeManager as any).ambientSound = mockSound;
+
+            BiomeManager.resumeAmbientSound();
+
+            expect(mockSound.play).toHaveBeenCalled();
+        });
+
+        it('should not play when sound is already playing', () => {
+            const mockSound = { play: vi.fn(), isPlaying: true };
+            (BiomeManager as any).ambientSound = mockSound;
+
+            BiomeManager.resumeAmbientSound();
+
+            expect(mockSound.play).not.toHaveBeenCalled();
+        });
+
+        it('should not throw when no ambient sound exists', () => {
+            (BiomeManager as any).ambientSound = null;
+            expect(() => BiomeManager.resumeAmbientSound()).not.toThrow();
+        });
+    });
+
+    describe('setAmbientVolume', () => {
+        it('should set volume when sound exists and has setVolume', () => {
+            const mockSound = { setVolume: vi.fn() };
+            (BiomeManager as any).ambientSound = mockSound;
+
+            BiomeManager.setAmbientVolume(0.5);
+
+            expect(mockSound.setVolume).toHaveBeenCalledWith(0.5);
+        });
+
+        it('should not throw when no ambient sound exists', () => {
+            (BiomeManager as any).ambientSound = null;
+            expect(() => BiomeManager.setAmbientVolume(0.5)).not.toThrow();
+        });
+
+        it('should not throw when sound has no setVolume method', () => {
+            const mockSound = { stop: vi.fn() }; // needs stop for cleanup
+            (BiomeManager as any).ambientSound = mockSound;
+            expect(() => BiomeManager.setAmbientVolume(0.5)).not.toThrow();
+        });
+    });
+
+    describe('getParticleConfig (private)', () => {
+        const getParticleConfig = (type: string) => (BiomeManager as any).getParticleConfig(type);
+
+        it('should return snow config with downward movement', () => {
+            const config = getParticleConfig('snow');
+            expect(config.y).toBe(-10);
+            expect(config.quantity).toBe(2);
+            expect(config.frequency).toBe(80);
+        });
+
+        it('should return embers config with upward movement', () => {
+            const config = getParticleConfig('embers');
+            expect(config.y).toBe(610);
+            expect(config.lifespan).toBe(3000);
+        });
+
+        it('should return spores config with floating movement', () => {
+            const config = getParticleConfig('spores');
+            expect(config.lifespan).toBe(6000);
+            expect(config.frequency).toBe(200);
+        });
+
+        it('should return bubbles config with upward movement', () => {
+            const config = getParticleConfig('bubbles');
+            expect(config.y).toBe(610);
+            expect(config.frequency).toBe(200);
+        });
+
+        it('should return sparkles config with short lifespan', () => {
+            const config = getParticleConfig('sparkles');
+            expect(config.lifespan).toBe(1500);
+            expect(config.frequency).toBe(120);
+        });
+
+        it('should return drips config with downward movement', () => {
+            const config = getParticleConfig('drips');
+            expect(config.y).toBe(-10);
+            expect(config.lifespan).toBe(5000);
+            expect(config.frequency).toBe(300);
+        });
+
+        it('should return blobs config with slow downward movement', () => {
+            const config = getParticleConfig('blobs');
+            expect(config.y).toBe(-10);
+            expect(config.lifespan).toBe(6000);
+            expect(config.frequency).toBe(250);
+        });
+
+        it('should return default base config for unknown particle type', () => {
+            const config = getParticleConfig('unknown');
+            expect(config.lifespan).toBe(4000);
+            expect(config.quantity).toBe(1);
+            expect(config.frequency).toBe(100);
+        });
+    });
+
+    describe('playAmbientSound (via applyBiome)', () => {
+        it('should stop existing ambient sound before playing new one', () => {
+            const oldSound = { stop: vi.fn(), isPlaying: true };
+            (BiomeManager as any).ambientSound = oldSound;
+
+            const { mockScene } = createMockScene();
+            BiomeManager.applyBiome(mockScene as any, BiomeType.ARCTIC);
+
+            expect(oldSound.stop).toHaveBeenCalled();
+        });
+
+        it('should handle ambient sound with no soundKey gracefully', () => {
+            // Register a biome with no ambient sound
+            const silentBiome: BiomeConfig = {
+                type: 'silent' as BiomeType,
+                name: 'Silent',
+                description: 'No sound',
+                visuals: { backgroundColor: 0, brickTexture: 'brick', uiAccentColor: '#ffffff' },
+                physics: { friction: 1, gravity: 1, airDepletionRate: 1, playerSpeedMultiplier: 1 },
+                audio: {},
+            };
+            BiomeManager.registerBiome(silentBiome);
+
+            const { mockScene } = createMockScene();
+            expect(() => BiomeManager.applyBiome(mockScene as any, 'silent' as BiomeType)).not.toThrow();
+        });
+    });
+
+    describe('complete biome data validation', () => {
+        it('UNDERGROUND should have platform tint', () => {
+            const biome = BiomeManager.getBiome(BiomeType.UNDERGROUND);
+            expect(biome.visuals.platformTint).toBe(0x888899);
+        });
+
+        it('FOREST should have platform tint', () => {
+            const biome = BiomeManager.getBiome(BiomeType.FOREST);
+            expect(biome.visuals.platformTint).toBe(0x44aa44);
+        });
+
+        it('TOXIC should have platform tint', () => {
+            const biome = BiomeManager.getBiome(BiomeType.TOXIC);
+            expect(biome.visuals.platformTint).toBe(0x88ff00);
+        });
+
+        it('SLIME should have platform tint', () => {
+            const biome = BiomeManager.getBiome(BiomeType.SLIME);
+            expect(biome.visuals.platformTint).toBe(0x44dd66);
+        });
+
+        it('CAVERN should not have platform tint', () => {
+            const biome = BiomeManager.getBiome(BiomeType.CAVERN);
+            expect(biome.visuals.platformTint).toBeUndefined();
+        });
+
+        it('all standard biomes should have ambient sound defined', () => {
+            const standardTypes = [
+                BiomeType.CAVERN, BiomeType.UNDERGROUND, BiomeType.ARCTIC,
+                BiomeType.LAVA, BiomeType.FOREST, BiomeType.CRYSTAL,
+                BiomeType.TOXIC, BiomeType.SLIME,
+            ];
+            standardTypes.forEach(type => {
+                const biome = BiomeManager.getBiome(type);
+                expect(biome.audio.ambientSound).toBeTruthy();
+            });
+        });
+
+        it('all standard biomes should have particle colors defined when particles are set', () => {
+            const standardTypes = [
+                BiomeType.CAVERN, BiomeType.UNDERGROUND, BiomeType.ARCTIC,
+                BiomeType.LAVA, BiomeType.FOREST, BiomeType.CRYSTAL,
+                BiomeType.TOXIC, BiomeType.SLIME,
+            ];
+            standardTypes.forEach(type => {
+                const biome = BiomeManager.getBiome(type);
+                if (biome.visuals.ambientParticles && biome.visuals.ambientParticles !== 'none') {
+                    expect(biome.visuals.particleColor).toBeTypeOf('number');
+                }
+            });
+        });
+
+        it('LAVA should slow player movement', () => {
+            const biome = BiomeManager.getBiome(BiomeType.LAVA);
+            expect(biome.physics.playerSpeedMultiplier).toBe(0.9);
+        });
+
+        it('TOXIC should slow player movement', () => {
+            const biome = BiomeManager.getBiome(BiomeType.TOXIC);
+            expect(biome.physics.playerSpeedMultiplier).toBe(0.85);
+        });
+
+        it('SLIME should slightly slow player movement', () => {
+            const biome = BiomeManager.getBiome(BiomeType.SLIME);
+            expect(biome.physics.playerSpeedMultiplier).toBe(0.95);
+        });
+
+        it('CRYSTAL should speed up player movement', () => {
+            const biome = BiomeManager.getBiome(BiomeType.CRYSTAL);
+            expect(biome.physics.playerSpeedMultiplier).toBe(1.1);
         });
     });
 });

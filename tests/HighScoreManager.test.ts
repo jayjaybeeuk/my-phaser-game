@@ -211,6 +211,36 @@ describe('HighScoreManager', () => {
 
             localStorage.removeItem = originalRemoveItem;
         });
+
+        it('should handle setItem failure during default initialization', () => {
+            // Clear any existing scores first
+            localStorage.removeItem('maniacal_miner_high_scores');
+
+            const originalSetItem = localStorage.setItem.bind(localStorage);
+            localStorage.setItem = () => {
+                throw new Error('QuotaExceeded');
+            };
+
+            // getHighScores will try to initialize defaults, which will fail to save
+            const scores = HighScoreManager.getHighScores();
+            expect(Array.isArray(scores)).toBe(true);
+            expect(scores.length).toBeGreaterThan(0);
+
+            localStorage.setItem = originalSetItem;
+        });
+
+        it('should still return result when save fails', () => {
+            const originalSetItem = localStorage.setItem.bind(localStorage);
+            localStorage.setItem = () => {
+                throw new Error('QuotaExceeded');
+            };
+
+            // saveScore should still return a boolean even when save fails
+            const result = HighScoreManager.saveScore('ERR_', 99999);
+            expect(typeof result).toBe('boolean');
+
+            localStorage.setItem = originalSetItem;
+        });
     });
 
     describe('default scores', () => {

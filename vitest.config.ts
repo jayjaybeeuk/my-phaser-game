@@ -20,13 +20,14 @@ export default defineConfig({
                 'src/systems/MusicManager.ts', // Requires Phaser sound API
                 'src/systems/UISystem.ts', // Requires Phaser scene API
                 'src/systems/DebugMenu.ts', // Requires Phaser scene API
+                'src/systems/TouchControls.ts', // Requires Phaser scene API for UI
                 'src/constants/**/*.ts', // Just constants, no logic to test
             ],
             thresholds: {
-                lines: 30,
-                functions: 30,
-                branches: 30,
-                statements: 30,
+                lines: 80,
+                functions: 80,
+                branches: 80,
+                statements: 80,
             },
         },
     },
